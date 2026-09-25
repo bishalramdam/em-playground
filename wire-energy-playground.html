@@ -139,6 +139,8 @@ table.modes td.mono{white-space:nowrap}
   .split{grid-template-columns:1fr}
   .ro .v{font-size:17px}
 }
+nav.tabs a.navlink{margin-left:auto;align-self:center;white-space:nowrap;font:600 14px/1 var(--sans);color:var(--accent);text-decoration:none;padding:12px 14px}
+nav.tabs a.navlink:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -147,6 +149,7 @@ table.modes td.mono{white-space:nowrap}
 <header class="top">
   <div class="brand"><b>Wire Energy Playground</b><span class="label">4 playgrounds · from a torch bulb to 765 kV</span></div>
   <div class="tools">
+    <a class="btn" href="./" style="text-decoration:none">All labs</a>
     <a class="btn" href="radio-wave-bench.html" style="text-decoration:none">Radio Wave Bench</a>
     <button id="motion" aria-pressed="false" title="Pause or resume all animation">Pause motion</button>
     <button id="theme" title="Switch light / dark">Light / dark</button>
@@ -171,6 +174,7 @@ table.modes td.mono{white-space:nowrap}
   <button role="tab" id="tab-cx" aria-controls="cx" aria-selected="false">2 · Real cables, cut open</button>
   <button role="tab" id="tab-ln" aria-controls="ln" aria-selected="false">3 · Lines 50 to 1,000 km</button>
   <button role="tab" id="tab-co" aria-controls="co" aria-selected="false">4 · Corona challenge</button>
+  <a class="navlink" href="radio-wave-bench.html">Radio Wave Bench ↗</a>
 </nav>
 
 <!-- ============ 1 CIRCUIT ============ -->
@@ -1192,14 +1196,14 @@ function drawCON(){
 /* ================= tabs, theme, loop ================= */
 function fmtTimeFine(s){ if(s<1e-9) return sig(s*1e12,3)+' ps'; if(s<1e-6) return sig(s*1e9,3)+' ns'; return fmtTime(s); }
 const TABS = ['pw','cx','ln','co'];
-function showTab(id){
+function showTab(id, initial){
   if(!TABS.includes(id)) id = 'pw';
   state.tab = id;
   TABS.forEach(t => { $('#'+t).hidden = t!==id; $('#tab-'+t).setAttribute('aria-selected', String(t===id)); });
   if(id==='pw') pwSwitch(true);
   if(id==='co') coUpdate();
   dirtyAll();
-  try{ history.replaceState(null,'','#'+id); }catch(e){}
+  if(!initial){ try{ history.replaceState(null,'','#'+id); }catch(e){} }
 }
 window.addEventListener('hashchange', () => { const id = (location.hash||'').slice(1); if(id !== state.tab && TABS.includes(id)) showTab(id); });
 $$('nav.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.id.replace('tab-',''))));
@@ -1233,7 +1237,7 @@ function init(){
   pwSlow(); pwSetScene('dc');
   cxRead(); cxSetType('cord');
   lnUpdate(); coUpdate();
-  showTab((location.hash||'').slice(1));
+  showTab((location.hash||'').slice(1), true);
   requestAnimationFrame(frame);
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => dirtyAll());

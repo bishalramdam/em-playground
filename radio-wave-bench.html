@@ -139,6 +139,8 @@ table.modes td.mono{white-space:nowrap}
   .split{grid-template-columns:1fr}
   .ro .v{font-size:17px}
 }
+nav.tabs a.navlink{margin-left:auto;align-self:center;white-space:nowrap;font:600 14px/1 var(--sans);color:var(--accent);text-decoration:none;padding:12px 14px}
+nav.tabs a.navlink:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -147,6 +149,7 @@ table.modes td.mono{white-space:nowrap}
 <header class="top">
   <div class="brand"><b>Radio Wave Bench</b><span class="label">5 experiments · 88 MHz to 40 GHz</span></div>
   <div class="tools">
+    <a class="btn" href="./" style="text-decoration:none">All labs</a>
     <a class="btn" href="wire-energy-playground.html" style="text-decoration:none">Energy in wires ↗</a>
     <button id="motion" aria-pressed="false" title="Pause or resume all animation">Pause motion</button>
     <button id="theme" title="Switch light / dark">Light / dark</button>
@@ -177,6 +180,7 @@ table.modes td.mono{white-space:nowrap}
   <button role="tab" id="tab-wg" aria-controls="wg" aria-selected="false">Waveguides</button>
   <button role="tab" id="tab-pk" aria-controls="pk" aria-selected="false">Wave packets &amp; wavelets</button>
   <button role="tab" id="tab-wifi" aria-controls="wifi" aria-selected="false">Wi-Fi at home</button>
+  <a class="navlink" href="wire-energy-playground.html">Energy in wires ↗</a>
 </nav>
 
 
@@ -1553,13 +1557,13 @@ function drawCH(){
 
 /* ================= tabs, theme, loop ================= */
 const TABS = ['sim','fm','space','wg','pk','wifi'];
-function showTab(id){
+function showTab(id, initial){
   if(!TABS.includes(id)) id = 'sim';
   state.tab = id;
   TABS.forEach(t => { $('#'+t).hidden = t!==id; $('#tab-'+t).setAttribute('aria-selected', String(t===id)); });
   if(id==='space') trip.start = performance.now();
   dirtyAll(); dirty.wfcompute = true;
-  try{ history.replaceState(null,'','#'+id); }catch(e){}
+  if(!initial){ try{ history.replaceState(null,'','#'+id); }catch(e){} }
 }
 $$('nav.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.id.replace('tab-',''))));
 $('nav.tabs').addEventListener('keydown', e => { const i = TABS.indexOf(state.tab);
@@ -1596,7 +1600,7 @@ function frame(now){
 function init(){
   readColors();
   setFc(98.1); updateFM(); setIonF(state.fc); updateTrip(); wgSync(); updatePK(); updateWV(); updateWF(); updateCH(); setScene('open');
-  showTab((location.hash||'').slice(1));
+  showTab((location.hash||'').slice(1), true);
   requestAnimationFrame(frame);
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => dirtyAll());
