@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EM Playground</title>
+<meta name="description" content="Two interactive labs: a live Maxwell simulator for radio waves, and a Poynting-vector playground for cables, power lines and corona.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="EM Playground: see radio waves and electricity move">
+<meta property="og:description" content="Two interactive labs: a live Maxwell simulator for radio waves, and a Poynting-vector playground for cables, power lines and corona.">
+<meta property="og:url" content="https://bishalramdam.github.io/em-playground/">
+<meta property="og:image" content="https://bishalramdam.github.io/em-playground/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EM Playground: see radio waves and electricity move">
+<meta name="twitter:description" content="Two interactive labs: a live Maxwell simulator for radio waves, and a Poynting-vector playground for cables, power lines and corona.">
+<meta name="twitter:image" content="https://bishalramdam.github.io/em-playground/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDF0F3; --panel:#F8FAFB; --ink:#13202E; --ink-2:#4B5967; --rule:#CAD2DA; --grid:#DDE3E8;
+  --accent:#C2410C; --accent-ink:#FFFFFF;
+  --t1:#1864AB; --t2:#C2410C; --t3:#2B8A3E;
+  --seq0:#F8FAFB; --seq1:#4DABF7; --seq2:#0B2E59;
+  --good:#2B8A3E; --warn:#E67700; --bad:#C92A2A;
+  --display:"Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D141B; --panel:#141D27; --ink:#E4EAF0; --ink-2:#93A1AF; --rule:#2B3744; --grid:#1D2833;
+    --accent:#FF8A4C; --accent-ink:#1A0E06;
+    --t1:#5AA9FF; --t2:#FF8A4C; --t3:#69DB7C;
+    --seq0:#141D27; --seq1:#1C7ED6; --seq2:#D0EBFF;
+    --good:#51CF66; --warn:#FCC419; --bad:#FF6B6B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D141B; --panel:#141D27; --ink:#E4EAF0; --ink-2:#93A1AF; --rule:#2B3744; --grid:#1D2833;
+  --accent:#FF8A4C; --accent-ink:#1A0E06;
+  --t1:#5AA9FF; --t2:#FF8A4C; --t3:#69DB7C;
+  --seq0:#141D27; --seq1:#1C7ED6; --seq2:#D0EBFF;
+  --good:#51CF66; --warn:#FCC419; --bad:#FF6B6B;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font:15px/1.55 var(--sans); padding-inline:16px; padding-block:0 48px}
+.wrap{max-width:1180px; margin:0 auto}
+h1,h2,h3{font-family:var(--display); font-weight:800; letter-spacing:.01em; line-height:1.02; text-wrap:balance; margin:0}
+h1{font-size:clamp(40px,7vw,76px); text-transform:uppercase}
+h2{font-size:clamp(28px,4vw,40px); text-transform:uppercase}
+h3{font-size:22px; text-transform:uppercase; letter-spacing:.03em}
+p{margin:0}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+.label{font:500 11px/1.2 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2)}
+a{color:var(--t1)}
+
+/* header */
+header.top{display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:18px; border-bottom:1px solid var(--rule)}
+.brand{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.brand b{font:800 22px/1 var(--display); letter-spacing:.06em; text-transform:uppercase}
+.tools{display:flex; gap:8px; flex-wrap:wrap}
+button, .btn{font:500 13px/1 var(--sans); color:var(--ink); background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:9px 12px; cursor:pointer}
+button:hover{border-color:var(--ink-2)}
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button[aria-pressed="true"], .seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+button.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+
+/* hero dial */
+.hero{display:grid; gap:20px; padding-block:28px 8px}
+.hero-intro{display:grid; grid-template-columns:1.2fr 1fr; gap:24px; align-items:end}
+.hero-intro p{max-width:58ch; color:var(--ink-2)}
+.dial-box{background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:14px 14px 10px}
+#dial{width:100%; height:190px; display:block; touch-action:none; cursor:ew-resize}
+.readouts{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden; margin-top:10px}
+.ro{background:var(--panel); padding:10px 12px; display:grid; gap:4px}
+.ro .v{font:500 20px/1.1 var(--mono); font-variant-numeric:tabular-nums}
+.ro .v small{font-size:12px; color:var(--ink-2)}
+
+/* tabs */
+nav.tabs{display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--rule); margin-top:28px; position:sticky; top:0; background:var(--paper); z-index:5; padding-top:6px}
+nav.tabs button{border:0; border-bottom:3px solid transparent; border-radius:0; background:transparent; padding:12px 14px; white-space:nowrap; font:600 14px/1 var(--sans); color:var(--ink-2)}
+nav.tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+section.exp{padding-block:26px 10px; display:grid; gap:22px}
+.exp-head{display:grid; gap:8px; max-width:75ch}
+.exp-head p{color:var(--ink-2)}
+.bench{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; align-items:start}
+.inst{background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:12px; display:grid; gap:10px; min-width:0}
+.inst canvas{width:100%; display:block; border-radius:6px}
+.inst-title{display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap}
+.side{display:grid; gap:14px}
+.ctrls{display:grid; gap:14px; background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:14px}
+.ctrl{display:grid; gap:6px}
+.ctrl .row{display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.ctrl output{font:500 13px/1 var(--mono); font-variant-numeric:tabular-nums}
+input[type=range]{width:100%; accent-color:var(--accent)}
+.seg{display:flex; flex-wrap:wrap; gap:6px}
+.seg button{padding:7px 10px; font-size:12.5px}
+.check{display:flex; gap:8px; align-items:center; font-size:14px}
+.check input{accent-color:var(--accent); width:16px; height:16px}
+.stats{display:grid; gap:0; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--panel)}
+.stat{display:flex; justify-content:space-between; gap:10px; padding:9px 12px; border-top:1px solid var(--rule); align-items:baseline}
+.stat:first-child{border-top:0}
+.stat span:first-child{color:var(--ink-2); font-size:13px}
+.stat span:last-child{font:500 14px/1.2 var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+.chip{display:inline-block; font:600 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; padding:5px 8px; border-radius:999px; border:1px solid currentColor}
+.chip.good{color:var(--good)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)}
+.notes{display:grid; gap:10px; font-size:14px}
+.notes h3{font-size:18px}
+.notes ul{margin:0; padding-left:18px; display:grid; gap:6px}
+.notes .try{border-left:3px solid var(--accent); padding-left:12px}
+.eq{font:500 13px/1.5 var(--mono); background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:8px 10px; overflow-x:auto; white-space:nowrap}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
+.legend i{display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:6px; border-radius:2px}
+.split{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.table-wrap{overflow-x:auto}
+table.modes{border-collapse:collapse; width:100%; font-size:13px}
+table.modes th, table.modes td{padding:7px 8px; border-top:1px solid var(--rule); text-align:left}
+table.modes th{font:500 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); border-top:0}
+table.modes td.mono{white-space:nowrap}
+.foot{margin-top:40px; padding-top:16px; border-top:1px solid var(--rule); color:var(--ink-2); font-size:13px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+[hidden]{display:none!important}
+
+@media (max-width:900px){
+  .bench{grid-template-columns:1fr}
+  .hero-intro{grid-template-columns:1fr}
+  .readouts{grid-template-columns:repeat(2,1fr)}
+  .readouts .ro:last-child{grid-column:1 / -1}
+}
+@media (max-width:520px){
+  .split{grid-template-columns:1fr}
+  .ro .v{font-size:17px}
+}
+</style>
+<style>
+.cards{display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-block:26px}
+.card{display:grid; gap:12px; background:var(--panel); border:1px solid var(--rule); border-radius:12px; padding:14px; color:var(--ink); text-decoration:none}
+.card:hover{border-color:var(--ink-2)}
+.card img{width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:8px; display:block; background:var(--paper)}
+.card h2{font-size:34px}
+.card p{color:var(--ink-2)}
+.card .go{font:600 14px/1 var(--sans); color:var(--accent)}
+.list{margin:0; padding-left:18px; display:grid; gap:4px; color:var(--ink-2); font-size:14px}
+@media (max-width:760px){ .cards{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand"><b>EM Playground</b><span class="label">by Bishal Ramdam</span></div>
+<div class="tools"><button id="theme" title="Switch light / dark">Light / dark</button></div></header>
+<section class="hero"><div class="hero-intro"><h1>See radio waves and electricity move.</h1>
+<p>Two interactive labs built on real physics. The fields are computed from Maxwell's equations as you play, so what you see spreading, bouncing and flowing is what the fields actually do. Nothing to install; it runs in your browser, even on a phone.</p></div></section>
+<div class="cards">
+<a class="card" href="radio-wave-bench.html"><img src="img/tank.png" alt="Two antennas making an interference pattern in the live wave tank">
+<span class="label">Lab 1</span><h2>Radio Wave Bench</h2>
+<p>A live Maxwell wave tank: place antennas, draw metal and glass, watch waves diffract, interfere and get guided.</p>
+<ul class="list"><li>FM, Wi-Fi and 5G beam steering</li><li>Waveguides, ionosphere bounce, wavelets</li><li>Wi-Fi signal map of a house</li></ul>
+<span class="go">Open the bench →</span></a>
+<a class="card" href="wire-energy-playground.html"><img src="img/corona-night.png" alt="A high-voltage line glowing with corona at night">
+<span class="label">Lab 2</span><h2>Wire Energy Playground</h2>
+<p>Energy flows around the wire, not inside it. Follow the Poynting vector from a torch bulb to a 765 kV line.</p>
+<ul class="list"><li>Twisted pair, coax, house wiring, 3-phase cables</li><li>50 to 1,000 km lines: Ferranti, SIL, collapse</li><li>The corona challenge, with sound</li></ul>
+<span class="go">Open the playground →</span></a>
+</div>
+<footer class="foot"><span>Inspired in part by Veritasium's "The Big Misconception About Electricity".</span><span class="mono">S = E × B / μ₀</span></footer>
+</div>
+<script>
+document.getElementById('theme').addEventListener('click', () => { const r = document.documentElement, c = r.getAttribute('data-theme'); const d = c ? c==='dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.setAttribute('data-theme', d ? 'light' : 'dark'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radio Wave Bench</title>
+<meta name="description" content="A live Maxwell simulator in your browser: watch FM, Wi-Fi and 5G waves spread, bounce, diffract, fill a waveguide and bounce off the ionosphere.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Radio Wave Bench">
+<meta property="og:description" content="A live Maxwell simulator in your browser: watch FM, Wi-Fi and 5G waves spread, bounce, diffract, fill a waveguide and bounce off the ionosphere.">
+<meta property="og:url" content="https://bishalramdam.github.io/em-playground/radio-wave-bench.html">
+<meta property="og:image" content="https://bishalramdam.github.io/em-playground/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Radio Wave Bench">
+<meta name="twitter:description" content="A live Maxwell simulator in your browser: watch FM, Wi-Fi and 5G waves spread, bounce, diffract, fill a waveguide and bounce off the ionosphere.">
+<meta name="twitter:image" content="https://bishalramdam.github.io/em-playground/og.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDF0F3; --panel:#F8FAFB; --ink:#13202E; --ink-2:#4B5967; --rule:#CAD2DA; --grid:#DDE3E8;
+  --accent:#C2410C; --accent-ink:#FFFFFF;
+  --t1:#1864AB; --t2:#C2410C; --t3:#2B8A3E;
+  --seq0:#F8FAFB; --seq1:#4DABF7; --seq2:#0B2E59;
+  --good:#2B8A3E; --warn:#E67700; --bad:#C92A2A;
+  --display:"Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D141B; --panel:#141D27; --ink:#E4EAF0; --ink-2:#93A1AF; --rule:#2B3744; --grid:#1D2833;
+    --accent:#FF8A4C; --accent-ink:#1A0E06;
+    --t1:#5AA9FF; --t2:#FF8A4C; --t3:#69DB7C;
+    --seq0:#141D27; --seq1:#1C7ED6; --seq2:#D0EBFF;
+    --good:#51CF66; --warn:#FCC419; --bad:#FF6B6B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D141B; --panel:#141D27; --ink:#E4EAF0; --ink-2:#93A1AF; --rule:#2B3744; --grid:#1D2833;
+  --accent:#FF8A4C; --accent-ink:#1A0E06;
+  --t1:#5AA9FF; --t2:#FF8A4C; --t3:#69DB7C;
+  --seq0:#141D27; --seq1:#1C7ED6; --seq2:#D0EBFF;
+  --good:#51CF66; --warn:#FCC419; --bad:#FF6B6B;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font:15px/1.55 var(--sans); padding-inline:16px; padding-block:0 48px}
+.wrap{max-width:1180px; margin:0 auto}
+h1,h2,h3{font-family:var(--display); font-weight:800; letter-spacing:.01em; line-height:1.02; text-wrap:balance; margin:0}
+h1{font-size:clamp(40px,7vw,76px); text-transform:uppercase}
+h2{font-size:clamp(28px,4vw,40px); text-transform:uppercase}
+h3{font-size:22px; text-transform:uppercase; letter-spacing:.03em}
+p{margin:0}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+.label{font:500 11px/1.2 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2)}
+a{color:var(--t1)}
+
+/* header */
+header.top{display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:18px; border-bottom:1px solid var(--rule)}
+.brand{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.brand b{font:800 22px/1 var(--display); letter-spacing:.06em; text-transform:uppercase}
+.tools{display:flex; gap:8px; flex-wrap:wrap}
+button, .btn{font:500 13px/1 var(--sans); color:var(--ink); background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:9px 12px; cursor:pointer}
+button:hover{border-color:var(--ink-2)}
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button[aria-pressed="true"], .seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+button.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+
+/* hero dial */
+.hero{display:grid; gap:20px; padding-block:28px 8px}
+.hero-intro{display:grid; grid-template-columns:1.2fr 1fr; gap:24px; align-items:end}
+.hero-intro p{max-width:58ch; color:var(--ink-2)}
+.dial-box{background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:14px 14px 10px}
+#dial{width:100%; height:190px; display:block; touch-action:none; cursor:ew-resize}
+.readouts{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden; margin-top:10px}
+.ro{background:var(--panel); padding:10px 12px; display:grid; gap:4px}
+.ro .v{font:500 20px/1.1 var(--mono); font-variant-numeric:tabular-nums}
+.ro .v small{font-size:12px; color:var(--ink-2)}
+
+/* tabs */
+nav.tabs{display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--rule); margin-top:28px; position:sticky; top:0; background:var(--paper); z-index:5; padding-top:6px}
+nav.tabs button{border:0; border-bottom:3px solid transparent; border-radius:0; background:transparent; padding:12px 14px; white-space:nowrap; font:600 14px/1 var(--sans); color:var(--ink-2)}
+nav.tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+section.exp{padding-block:26px 10px; display:grid; gap:22px}
+.exp-head{display:grid; gap:8px; max-width:75ch}
+.exp-head p{color:var(--ink-2)}
+.bench{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; align-items:start}
+.inst{background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:12px; display:grid; gap:10px; min-width:0}
+.inst canvas{width:100%; display:block; border-radius:6px}
+.inst-title{display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap}
+.side{display:grid; gap:14px}
+.ctrls{display:grid; gap:14px; background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:14px}
+.ctrl{display:grid; gap:6px}
+.ctrl .row{display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.ctrl output{font:500 13px/1 var(--mono); font-variant-numeric:tabular-nums}
+input[type=range]{width:100%; accent-color:var(--accent)}
+.seg{display:flex; flex-wrap:wrap; gap:6px}
+.seg button{padding:7px 10px; font-size:12.5px}
+.check{display:flex; gap:8px; align-items:center; font-size:14px}
+.check input{accent-color:var(--accent); width:16px; height:16px}
+.stats{display:grid; gap:0; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--panel)}
+.stat{display:flex; justify-content:space-between; gap:10px; padding:9px 12px; border-top:1px solid var(--rule); align-items:baseline}
+.stat:first-child{border-top:0}
+.stat span:first-child{color:var(--ink-2); font-size:13px}
+.stat span:last-child{font:500 14px/1.2 var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+.chip{display:inline-block; font:600 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; padding:5px 8px; border-radius:999px; border:1px solid currentColor}
+.chip.good{color:var(--good)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)}
+.notes{display:grid; gap:10px; font-size:14px}
+.notes h3{font-size:18px}
+.notes ul{margin:0; padding-left:18px; display:grid; gap:6px}
+.notes .try{border-left:3px solid var(--accent); padding-left:12px}
+.eq{font:500 13px/1.5 var(--mono); background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:8px 10px; overflow-x:auto; white-space:nowrap}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
+.legend i{display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:6px; border-radius:2px}
+.split{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.table-wrap{overflow-x:auto}
+table.modes{border-collapse:collapse; width:100%; font-size:13px}
+table.modes th, table.modes td{padding:7px 8px; border-top:1px solid var(--rule); text-align:left}
+table.modes th{font:500 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); border-top:0}
+table.modes td.mono{white-space:nowrap}
+.foot{margin-top:40px; padding-top:16px; border-top:1px solid var(--rule); color:var(--ink-2); font-size:13px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+[hidden]{display:none!important}
+
+@media (max-width:900px){
+  .bench{grid-template-columns:1fr}
+  .hero-intro{grid-template-columns:1fr}
+  .readouts{grid-template-columns:repeat(2,1fr)}
+  .readouts .ro:last-child{grid-column:1 / -1}
+}
+@media (max-width:520px){
+  .split{grid-template-columns:1fr}
+  .ro .v{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brand"><b>Radio Wave Bench</b><span class="label">5 experiments · 88 MHz to 40 GHz</span></div>
+  <div class="tools">
+    <a class="btn" href="wire-energy-playground.html" style="text-decoration:none">Energy in wires ↗</a>
+    <button id="motion" aria-pressed="false" title="Pause or resume all animation">Pause motion</button>
+    <button id="theme" title="Switch light / dark">Light / dark</button>
+  </div>
+</header>
+
+<section class="hero" aria-label="FM tuner">
+  <div class="hero-intro">
+    <h1>Tune a station, then follow its wave.</h1>
+    <p>Drag the needle across the FM band. Every number below is the real size of the radio wave you just picked. Then open the live wave tank below: a real simulation of the electric field leaving an antenna and travelling through air.</p>
+  </div>
+  <div class="dial-box">
+    <canvas id="dial" aria-label="FM dial from 88 to 108 MHz. Drag or use arrow keys." tabindex="0"></canvas>
+    <div class="readouts">
+      <div class="ro"><span class="label">Frequency</span><span class="v" id="r-f">98.1 <small>MHz</small></span></div>
+      <div class="ro"><span class="label">Wavelength λ</span><span class="v" id="r-l">3.06 <small>m</small></span></div>
+      <div class="ro"><span class="label">One cycle lasts</span><span class="v" id="r-t">10.2 <small>ns</small></span></div>
+      <div class="ro"><span class="label">¼-wave antenna</span><span class="v" id="r-a">76 <small>cm</small></span></div>
+      <div class="ro"><span class="label">Crests passing you each second</span><span class="v" id="r-c">98,100,000</span></div>
+    </div>
+  </div>
+</section>
+
+<nav class="tabs" role="tablist" aria-label="Experiments">
+  <button role="tab" id="tab-sim" aria-controls="sim" aria-selected="true">Live wave tank</button>
+  <button role="tab" id="tab-fm" aria-controls="fm" aria-selected="false">FM signal</button>
+  <button role="tab" id="tab-space" aria-controls="space" aria-selected="false">Into space</button>
+  <button role="tab" id="tab-wg" aria-controls="wg" aria-selected="false">Waveguides</button>
+  <button role="tab" id="tab-pk" aria-controls="pk" aria-selected="false">Wave packets &amp; wavelets</button>
+  <button role="tab" id="tab-wifi" aria-controls="wifi" aria-selected="false">Wi-Fi at home</button>
+</nav>
+
+
+<!-- ============ LIVE SIMULATION ============ -->
+<section class="exp" id="sim" role="tabpanel" aria-labelledby="tab-sim">
+  <div class="exp-head">
+    <span class="label">Live simulation · Maxwell's equations, solved in your browser</span>
+    <h2>Watch a radio wave actually travel</h2>
+    <p>This is not a drawing of a wave. The tank below is a grid of 64,000 tiny patches of air, and the page solves Maxwell's equations for every patch, thousands of times a second. The waves spread, bounce, bend, squeeze through gaps and cast shadows because the physics makes them. Place antennas, draw walls, change the frequency.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Wave tank</h3><span class="label" id="sim-scale">tank 48 × 30 m · top view</span></div>
+      <canvas id="sim-c" style="height:auto; aspect-ratio:16/10; touch-action:none; cursor:crosshair" aria-label="Live electromagnetic field simulation. Click or drag to use the selected tool."></canvas>
+      <div class="inst-title"><span class="label">Draw with</span><span class="label" id="sim-hint">click to add an antenna, drag one to move it</span></div>
+      <div class="seg" id="sim-tool">
+        <button data-t="ant" aria-pressed="true">Antenna</button><button data-t="metal">Metal</button><button data-t="glass">Glass / wood</button><button data-t="conc">Concrete</button><button data-t="probe">Signal meter</button><button data-t="erase">Eraser</button>
+      </div>
+      <div class="legend"><span><i style="background:var(--t2)"></i>electric field one way</span><span><i style="background:var(--t1)"></i>the other way</span><span><i style="background:var(--ink-2); height:8px"></i>metal</span><span><i style="background:var(--seq1); opacity:.5; height:8px"></i>glass</span><span><i style="background:var(--ink); opacity:.35; height:8px"></i>concrete</span><span><i style="background:var(--t3); opacity:.5; height:8px"></i>ionosphere plasma</span></div>
+      <div class="inst-title"><span class="label">Signal meter trace</span><span class="label" id="sim-probe-v">drop the signal meter anywhere in the tank</span></div>
+      <canvas id="sim-probe" style="height:70px"></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Scene</span>
+          <div class="seg" id="sim-scene">
+            <button data-s="open" aria-pressed="true">FM antenna, open air</button>
+            <button data-s="building">Building shadow</button>
+            <button data-s="gap">Squeeze through a gap</button>
+            <button data-s="walls">Glass vs concrete</button>
+            <button data-s="guide">Waveguide</button>
+            <button data-s="two">Two antennas</button>
+            <button data-s="array">5G beam steering</button>
+            <button data-s="room">Wi-Fi in a room</button>
+            <button data-s="iono">Ionosphere bounce</button>
+          </div></div>
+        <div class="ctrl"><div class="row"><label for="sim-f">Frequency</label><output id="sim-f-o">100 MHz</output></div>
+          <input type="range" id="sim-f" min="0" max="100" value="40"></div>
+        <div class="ctrl" id="sim-steer-box" hidden><div class="row"><label for="sim-steer">Beam direction</label><output id="sim-steer-o">0°</output></div>
+          <input type="range" id="sim-steer" min="-60" max="60" value="20"></div>
+        <div class="ctrl"><span class="label">Antennas send</span>
+          <div class="seg" id="sim-src"><button data-v="cw" aria-pressed="true">Continuous wave</button><button data-v="pulse">One pulse</button></div></div>
+        <div class="ctrl"><span class="label">Show</span>
+          <div class="seg" id="sim-view"><button data-v="field" aria-pressed="true">Live field</button><button data-v="power">Signal strength map</button></div></div>
+        <div class="ctrl"><div class="row"><label for="sim-speed">Simulation speed</label><output id="sim-speed-o">3 steps / frame</output></div>
+          <input type="range" id="sim-speed" min="1" max="8" value="3"></div>
+        <div class="seg"><button class="primary" id="sim-fire">Send pulse</button><button id="sim-reset">Clear waves</button><button id="sim-clear">Reset scene</button></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Real frequency</span><span id="sim-rf"></span></div>
+        <div class="stat"><span>Wavelength</span><span id="sim-rl"></span></div>
+        <div class="stat"><span>One grid cell</span><span id="sim-dx"></span></div>
+        <div class="stat"><span>Real time simulated</span><span id="sim-rt"></span></div>
+        <div class="stat"><span>Light has travelled</span><span id="sim-rd"></span></div>
+      </div>
+      <div class="notes"><p style="font-size:13px; color:var(--ink-2)" id="sim-note"></p></div>
+    </div>
+  </div>
+
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Close-up of the wave in 3D</h3><span class="label">drag to rotate</span></div>
+      <canvas id="eb" style="height:330px; touch-action:none; cursor:grab" aria-label="3D view of electric and magnetic fields in a travelling radio wave. Drag to rotate."></canvas>
+      <div class="legend"><span><i style="background:var(--t2)"></i>electric field E</span><span><i style="background:var(--t1)"></i>magnetic field B</span><span><i style="background:var(--ink)"></i>direction of travel, at the speed of light</span></div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Polarization</span>
+          <div class="seg" id="eb-pol"><button data-v="lin" aria-pressed="true">Vertical (FM, Wi-Fi)</button><button data-v="circ">Circular (GPS)</button></div></div>
+      </div>
+      <div class="notes">
+        <p>Zoom in on any point of the tank and this is what passes by: an electric field and a magnetic field, at right angles to each other and to the direction of travel. Each one's change creates the other, so the wave keeps itself going through empty space with no air needed.</p>
+        <p style="color:var(--ink-2)">In the tank above you see only the electric part, pointing up out of the screen or down into it. Orange is up, blue is down.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FM ============ -->
+<section class="exp" id="fm" role="tabpanel" aria-labelledby="tab-fm" hidden>
+  <div class="exp-head">
+    <span class="label">Experiment 1 · Frequency modulation</span>
+    <h2>How a song rides on a carrier</h2>
+    <p>An FM station sends one steady radio wave, the carrier. To carry sound, it nudges the carrier's frequency up and down in step with the audio. Loudness sets how far it swings (the deviation). Pitch sets how fast it swings.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Oscilloscope</h3><span class="label">time axis slowed ~10 million ×</span></div>
+      <canvas id="fm-scope" style="height:300px"></canvas>
+      <div class="legend"><span><i style="background:var(--t3)"></i>Audio in</span><span><i style="background:var(--t1)"></i>Radio wave on the air</span><span><i style="background:var(--t2)"></i>Audio your radio recovers</span></div>
+      <div class="inst-title"><h3>Spectrum analyzer</h3><span class="label" id="fm-span">span ±150 kHz around 98.1 MHz</span></div>
+      <canvas id="fm-spec" style="height:210px"></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Modulation</span>
+          <div class="seg" id="fm-mode"><button aria-pressed="true" data-v="fm">FM</button><button aria-pressed="false" data-v="am">AM (compare)</button></div></div>
+        <div class="ctrl"><div class="row"><label for="fm-tone">Audio pitch</label><output id="fm-tone-o">1.00 kHz</output></div>
+          <input type="range" id="fm-tone" min="0" max="1000" value="500"></div>
+        <div class="ctrl"><div class="row"><label for="fm-dev">Loudness → deviation</label><output id="fm-dev-o">±30 kHz</output></div>
+          <input type="range" id="fm-dev" min="0" max="75" value="30"></div>
+        <label class="check"><input type="checkbox" id="fm-noise"> Add static (lightning, engines)</label>
+        <button id="fm-play">Play the audio tone</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Modulation index β</span><span id="fm-beta">30.0</span></div>
+        <div class="stat"><span>Bandwidth used (Carson)</span><span id="fm-bw">62 kHz</span></div>
+        <div class="stat"><span>Fits a 200 kHz FM channel?</span><span id="fm-fit"></span></div>
+        <div class="stat"><span>Carrier strength J₀(β)</span><span id="fm-j0"></span></div>
+      </div>
+      <div class="notes">
+        <div class="try"><h3>Try this</h3>
+        <ul>
+          <li>Turn on static in AM mode and watch the recovered audio get messy. Switch to FM: the radio clips the wave's height flat, so the static is thrown away.</li>
+          <li>Set deviation to 2 kHz with a 1 kHz pitch (β ≈ 2.4). The carrier line nearly disappears; its power moved into the sidebands.</li>
+          <li>Max out both: ±75 kHz and 15 kHz is the loudest, brightest thing a broadcast FM station may send.</li>
+        </ul></div>
+        <div class="eq">f(t) = f<sub>c</sub> + Δf · sin(2π f<sub>m</sub> t) &nbsp;·&nbsp; BW ≈ 2(Δf + f<sub>m</sub>)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPACE ============ -->
+<section class="exp" id="space" role="tabpanel" aria-labelledby="tab-space" hidden>
+  <div class="exp-head">
+    <span class="label">Experiment 2 · Propagation</span>
+    <h2>Bounce off the sky, or escape to space</h2>
+    <p>80 to 400 km up, sunlight strips electrons off air molecules and makes the ionosphere. Low frequencies bounce off it and come back down far away. FM is too high a frequency to be reflected, so it goes straight through and keeps travelling into space at the speed of light.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Ionosphere</h3><span class="label" id="ion-verdict-l">heights to scale</span></div>
+      <canvas id="ion" style="height:320px"></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><div class="row"><label for="ion-f">Frequency</label><output id="ion-f-o">98 MHz</output></div>
+          <input type="range" id="ion-f" min="0" max="1000" value="700">
+          <div class="seg" id="ion-pre"><button data-f="1">AM 1 MHz</button><button data-f="9">Shortwave 9 MHz</button><button data-f="dial">FM (dial)</button><button data-f="2400">Wi-Fi</button></div></div>
+        <div class="ctrl"><div class="row"><label for="ion-a">Aim above horizon</label><output id="ion-a-o">20°</output></div>
+          <input type="range" id="ion-a" min="3" max="90" value="20"></div>
+        <div class="ctrl"><span class="label">Time of day</span>
+          <div class="seg" id="ion-day"><button aria-pressed="true" data-v="day">Day</button><button aria-pressed="false" data-v="night">Night</button></div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>What happens</span><span id="ion-verdict"></span></div>
+        <div class="stat"><span>Highest frequency that bounces here</span><span id="ion-muf"></span></div>
+        <div class="stat"><span>Lands this far away</span><span id="ion-range"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>The long trip</h3><span class="label" id="trip-speed">real time</span></div>
+      <canvas id="trip" style="height:260px"></canvas>
+      <div class="seg" id="trip-to">
+        <button data-i="0">FM coverage edge</button><button data-i="1">Space station</button><button data-i="2">GPS satellite</button><button data-i="3">Geostationary</button><button data-i="4" aria-pressed="true">Moon</button><button data-i="5">Mars (average)</button><button data-i="6">Voyager 1</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><div class="row"><label for="trip-p">Transmitter power</label><output id="trip-p-o">50 kW</output></div>
+          <input type="range" id="trip-p" min="0" max="600" value="470"></div>
+        <button class="primary" id="trip-send">Send a pulse</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Distance</span><span id="trip-d"></span></div>
+        <div class="stat"><span>Light-speed delay</span><span id="trip-t"></span></div>
+        <div class="stat"><span>Spreading loss</span><span id="trip-l"></span></div>
+        <div class="stat"><span>Power per m² there</span><span id="trip-s"></span></div>
+        <div class="stat"><span>A car-radio antenna picks up</span><span id="trip-r"></span></div>
+        <div class="stat"><span>Hearable over noise?</span><span id="trip-ok"></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="notes">
+      <h3>Why the signal fades: the inverse-square law</h3>
+      <p>A wave spreads over a growing sphere. At twice the distance the same energy covers four times the area, so each square metre gets a quarter of the power. At ten times the distance, a hundredth. Radio never "runs out"; it just gets thinner.</p>
+      <div class="table-wrap"><svg viewBox="0 0 520 150" width="520" height="150" role="img" aria-label="One square at distance 1, four squares at distance 2, nine squares at distance 3">
+        <g fill="none" stroke="var(--ink-2)" stroke-width="1">
+          <line x1="20" y1="75" x2="100" y2="40"/><line x1="20" y1="75" x2="100" y2="110"/>
+          <line x1="100" y1="40" x2="250" y2="15"/><line x1="100" y1="110" x2="250" y2="135"/>
+          <line x1="250" y1="15" x2="440" y2="-10"/><line x1="250" y1="135" x2="440" y2="160"/>
+        </g>
+        <circle cx="20" cy="75" r="6" fill="var(--accent)"/>
+        <rect x="90" y="55" width="20" height="40" fill="var(--t1)" opacity=".85"/>
+        <g fill="var(--t1)" opacity=".55"><rect x="235" y="25" width="28" height="48"/><rect x="235" y="77" width="28" height="48"/></g>
+        <g fill="var(--t1)" opacity=".3"><rect x="420" y="5" width="34" height="44"/><rect x="420" y="53" width="34" height="44"/><rect x="420" y="101" width="34" height="44"/></g>
+        <g font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">
+          <text x="118" y="80">1 m² · 100%</text><text x="272" y="80">4 m² · 25%</text><text x="462" y="80">9 m² · 11%</text>
+        </g>
+      </svg></div>
+    </div>
+    <div class="notes">
+      <h3>Good to know</h3>
+      <ul>
+        <li>FM and TV signals have been leaking into space since the 1940s. That "radio bubble" now reaches about 80 light-years out in every direction.</li>
+        <li>Deep-space missions use big dish antennas to focus power into a narrow beam, which is how NASA still hears Voyager 1's ~23 W transmitter from almost one light-day away.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WAVEGUIDE ============ -->
+<section class="exp" id="wg" role="tabpanel" aria-labelledby="tab-wg" hidden>
+  <div class="exp-head">
+    <span class="label">Experiment 3 · Guided waves</span>
+    <h2>A metal pipe for microwaves</h2>
+    <p>A waveguide is a hollow metal tube. The wave bounces between its walls in a zig-zag and moves along with almost no loss. There is one catch: the tube must be at least half a wavelength wide. Below that <em>cutoff frequency</em> the wave cannot fit and dies out within a few millimetres.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Top view inside the guide</h3><span class="label">electric field · to scale</span></div>
+      <canvas id="wg-top" style="height:240px"></canvas>
+      <div class="legend"><span><i style="background:var(--t2)"></i>field pointing up</span><span><i style="background:var(--t1)"></i>field pointing down</span><span><i style="background:var(--ink)"></i>zig-zag ray (moves at c)</span></div>
+      <div class="split">
+        <div><div class="inst-title"><span class="label">Cross-section (a × b)</span></div><canvas id="wg-cross" style="height:150px"></canvas></div>
+        <div class="table-wrap"><table class="modes" id="wg-table"><thead><tr><th>Mode</th><th>Cutoff</th><th>At this frequency</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Presets</span>
+          <div class="seg" id="wg-pre"><button data-p="wr90" aria-pressed="true">WR-90 radar, 10 GHz</button><button data-p="oven">Microwave oven, 2.45 GHz</button><button data-p="fm">FM in a pipe</button></div></div>
+        <div class="ctrl"><div class="row"><label for="wg-f">Frequency</label><output id="wg-f-o">10.0 GHz</output></div>
+          <input type="range" id="wg-f" min="0" max="1000" value="700"></div>
+        <div class="ctrl"><div class="row"><label for="wg-a">Guide width a</label><output id="wg-a-o">22.9 mm</output></div>
+          <input type="range" id="wg-a" min="0" max="1000" value="300"></div>
+        <div class="ctrl"><span class="label">Mode across the width</span>
+          <div class="seg" id="wg-m"><button data-m="1" aria-pressed="true">TE₁₀</button><button data-m="2">TE₂₀</button><button data-m="3">TE₃₀</button></div></div>
+        <label class="check"><input type="checkbox" id="wg-rays" checked> Show zig-zag ray</label>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Status</span><span id="wg-st"></span></div>
+        <div class="stat"><span>Cutoff for this mode</span><span id="wg-fc"></span></div>
+        <div class="stat"><span>Free-space wavelength</span><span id="wg-l0"></span></div>
+        <div class="stat"><span>Wavelength inside guide</span><span id="wg-lg"></span></div>
+        <div class="stat"><span>Crest speed (phase)</span><span id="wg-vp"></span></div>
+        <div class="stat"><span>Energy speed (group)</span><span id="wg-vg"></span></div>
+      </div>
+      <div class="eq">f<sub>c</sub> = c / 2a (TE₁₀) &nbsp;·&nbsp; v<sub>p</sub>·v<sub>g</sub> = c²</div>
+    </div>
+  </div>
+  <div class="notes" style="max-width:75ch">
+    <div class="try"><h3>Try this</h3><ul>
+      <li>Slowly lower the frequency toward cutoff. The zig-zag gets steeper, energy crawls forward, and crests race ahead faster than light. Crests carry no information, so physics is safe.</li>
+      <li>Press "FM in a pipe". At 98 MHz the tube would need to be 1.5 m wide. Instead the field fades out right at the entrance.</li>
+      <li>Pick TE₂₀ on the radar guide: it needs 13.1 GHz, so at 10 GHz only TE₁₀ travels. Designers choose sizes where exactly one mode fits.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ PACKETS ============ -->
+<section class="exp" id="pk" role="tabpanel" aria-labelledby="tab-pk" hidden>
+  <div class="exp-head">
+    <span class="label">Experiment 4 · Wave packets</span>
+    <h2>Build a pulse from pure waves</h2>
+    <p>A single sine wave goes on forever and carries no message. Add several waves with slightly different frequencies and they cancel almost everywhere, except in one bunch: a wave packet. Every radio pulse, Wi-Fi symbol and radar ping is a packet like this.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Adding waves</h3><span class="label" id="pk-info"></span></div>
+      <canvas id="pk-c" style="height:300px"></canvas>
+      <div class="legend"><span><i style="background:var(--ink-2)"></i>individual waves</span><span><i style="background:var(--t1)"></i>their sum</span><span><i style="background:var(--t2)"></i>envelope (moves at group speed)</span></div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><div class="row"><label for="pk-n">Number of waves added</label><output id="pk-n-o">15</output></div>
+          <input type="range" id="pk-n" min="1" max="40" value="15"></div>
+        <div class="ctrl"><div class="row"><label for="pk-bw">Spread of frequencies</label><output id="pk-bw-o">±7</output></div>
+          <input type="range" id="pk-bw" min="1" max="18" value="7"></div>
+        <div class="ctrl"><div class="row"><label for="pk-v">Group speed ÷ crest speed</label><output id="pk-v-o">0.50</output></div>
+          <input type="range" id="pk-v" min="0" max="200" value="50"></div>
+      </div>
+      <div class="notes"><div class="try"><h3>Try this</h3><ul>
+        <li>Start at 2 waves: you get endless beats. Add more and the repeats spread apart until one lonely pulse remains.</li>
+        <li>Widen the spread: the pulse gets shorter. Short pulses need wide bandwidth. That is why fast Wi-Fi needs wide channels.</li>
+        <li>Watch the orange dot (one crest) slide through the envelope. In a waveguide and in the ionosphere the ratio is below 1.</li>
+      </ul></div></div>
+    </div>
+  </div>
+
+  <div class="exp-head">
+    <span class="label">Experiment 4b · Wavelets</span>
+    <h2>Fourier says which notes. Wavelets say when.</h2>
+    <p>A Fourier spectrum lists the frequencies in a signal but loses their timing. A wavelet is a short wave packet used as a probe: slide it along the signal at many sizes and you get a map of which frequency happens when.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Signal</h3><span class="label">1 second</span></div>
+      <canvas id="wv-sig" style="height:110px"></canvas>
+      <div class="split">
+        <div><div class="inst-title"><span class="label">Fourier spectrum (no time)</span></div><canvas id="wv-fft" style="height:170px"></canvas></div>
+        <div><div class="inst-title"><span class="label">Morlet wavelet at 3 sizes</span></div><canvas id="wv-shape" style="height:170px"></canvas></div>
+      </div>
+      <div class="inst-title"><h3>Wavelet map</h3><span class="label">time → · frequency ↑ (log)</span></div>
+      <canvas id="wv-cwt" style="height:230px"></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Signal</span>
+          <div class="seg" id="wv-s"><button data-s="seq" aria-pressed="true">Low, then high</button><button data-s="both">Low + high together</button><button data-s="chirp">Rising chirp</button><button data-s="click">Tone with a click</button></div></div>
+        <div class="ctrl"><div class="row"><label for="wv-cyc">Wavelet length</label><output id="wv-cyc-o">6 cycles</output></div>
+          <input type="range" id="wv-cyc" min="3" max="16" value="6"></div>
+      </div>
+      <div class="notes"><div class="try"><h3>Try this</h3><ul>
+        <li>Flip between "Low, then high" and "Low + high together". The Fourier spectra look almost identical. The wavelet maps don't.</li>
+        <li>Pick "Tone with a click". The click is a thin vertical line on the map, but it's smeared across the whole Fourier spectrum.</li>
+        <li>Long wavelets give sharp frequency and blurry timing; short ones the opposite. You can't have both perfectly.</li>
+      </ul></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WIFI ============ -->
+<section class="exp" id="wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
+  <div class="exp-head">
+    <span class="label">Experiment 5 · Wi-Fi</span>
+    <h2>Why the bedroom has no signal</h2>
+    <p>Wi-Fi is radio too, just 25 to 65 times higher in frequency than FM. Higher frequency means shorter waves, more loss with distance, and more loss through walls, but also room for much more data. Drag the router and the phone around this house.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Signal map</h3><span class="label">24 × 14 m house and garden</span></div>
+      <canvas id="wf-map" style="height:auto; aspect-ratio:24/14; touch-action:none"></canvas>
+      <div class="legend" id="wf-legend"></div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Band</span>
+          <div class="seg" id="wf-band"><button data-b="2.4" aria-pressed="true">2.4 GHz</button><button data-b="5">5 GHz</button><button data-b="6">6 GHz</button></div></div>
+        <div class="ctrl"><div class="row"><label for="wf-p">Router power</label><output id="wf-p-o">20 dBm (100 mW)</output></div>
+          <input type="range" id="wf-p" min="10" max="23" value="20"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Signal at phone</span><span id="wf-rssi"></span></div>
+        <div class="stat"><span>Quality</span><span id="wf-q"></span></div>
+        <div class="stat"><span>Distance</span><span id="wf-d"></span></div>
+        <div class="stat"><span>Walls in the way</span><span id="wf-w"></span></div>
+        <div class="stat"><span>Wavelength</span><span id="wf-l"></span></div>
+      </div>
+      <div class="notes"><p style="color:var(--ink-2); font-size:13px">Wall losses are typical textbook values; real walls vary a lot. Signal in dBm: −50 is excellent, −67 is enough for video calls, below −80 things drop out.</p></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>2.4 GHz channels overlap</h3><span class="label">each channel ≈ 22 MHz wide, spaced 5 MHz</span></div>
+      <canvas id="wf-ch" style="height:170px"></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><div class="row"><label for="wf-c1">Your channel</label><output id="wf-c1-o">1</output></div>
+          <input type="range" id="wf-c1" min="1" max="13" value="1"></div>
+        <div class="ctrl"><div class="row"><label for="wf-c2">Neighbour's channel</label><output id="wf-c2-o">3</output></div>
+          <input type="range" id="wf-c2" min="1" max="13" value="3"></div>
+      </div>
+      <div class="stats"><div class="stat"><span>Interference</span><span id="wf-ov"></span></div></div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>Speed of light c = 299,792,458 m/s. Everything here is the same kind of wave; only the frequency changes.</span>
+  <a href="wire-energy-playground.html">Wire Energy Playground: Poynting vector, cables, power lines, corona</a>
+</footer>
+</div>
+<script>
+"use strict";
+/* ================= core ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const C0 = 299792458;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const lerp = (a,b,t) => a + (b-a)*t;
+let COL = {};
+function hexToRgb(h){ h = h.replace('#',''); if(h.length===3) h = h.split('').map(c=>c+c).join(''); const n = parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  ['paper','panel','ink','ink-2','rule','grid','accent','t1','t2','t3','seq0','seq1','seq2','good','warn','bad'].forEach(k => COL[k.replace('-','')] = cs.getPropertyValue('--'+k).trim());
+  COL.rgb = {}; for(const k in COL){ if(typeof COL[k]==='string' && COL[k][0]==='#') COL.rgb[k] = hexToRgb(COL[k]); }
+  dirtyAll();
+}
+function rgba(k,a){ const c = COL.rgb[k]; return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function seqColor(v){ // 0..1 -> rgb
+  v = clamp(v,0,1); const a = COL.rgb.seq0, b = COL.rgb.seq1, c = COL.rgb.seq2;
+  if(v<.5){ const t=v*2; return [lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)]; }
+  const t=(v-.5)*2; return [lerp(b[0],c[0],t),lerp(b[1],c[1],t),lerp(b[2],c[2],t)];
+}
+function divColor(v){ // -1..1 -> t1 .. panel .. t2
+  v = clamp(v,-1,1); const m = COL.rgb.panel, n = v<0 ? COL.rgb.t1 : COL.rgb.t2, t = Math.abs(v);
+  return [lerp(m[0],n[0],t),lerp(m[1],n[1],t),lerp(m[2],n[2],t)];
+}
+function setup(cv){
+  const dpr = Math.min(2, window.devicePixelRatio||1);
+  const r = cv.getBoundingClientRect(); const w = Math.max(20, r.width), h = Math.max(20, r.height);
+  const W = Math.round(w*dpr), H = Math.round(h*dpr);
+  if(cv.width!==W || cv.height!==H){ cv.width=W; cv.height=H; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx, w, h};
+}
+function fmtNum(v, d=0){ return v.toLocaleString('en-US',{minimumFractionDigits:d, maximumFractionDigits:d}); }
+function sig(v, n=3){ if(v===0) return '0'; const d = Math.max(0, n-1-Math.floor(Math.log10(Math.abs(v)))); return fmtNum(v, Math.min(d,6)); }
+function sci(v){ if(v===0) return '0'; const e = Math.floor(Math.log10(Math.abs(v))); const m = v/Math.pow(10,e);
+  const sup = String(e).split('').map(c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]).join('');
+  return `${m.toFixed(2)} × 10${sup}`; }
+function fmtLen(m){
+  if(m >= 1e9) return sig(m/1e9,3)+' million km';
+  if(m >= 1e3) return sig(m/1e3,3)+' km';
+  if(m >= 1) return sig(m,3)+' m';
+  if(m >= 1e-2) return sig(m*100,3)+' cm';
+  return sig(m*1000,3)+' mm';
+}
+function fmtFreq(hz){
+  if(hz>=1e9) return sig(hz/1e9,3)+' GHz';
+  if(hz>=1e6) return sig(hz/1e6,3)+' MHz';
+  if(hz>=1e3) return sig(hz/1e3,3)+' kHz';
+  return sig(hz,3)+' Hz';
+}
+function fmtTime(s){
+  if(s < 1e-3) return sig(s*1e6,3)+' µs';
+  if(s < 1) return sig(s*1000,3)+' ms';
+  if(s < 120) return sig(s,3)+' s';
+  if(s < 7200) return sig(s/60,3)+' min';
+  return sig(s/3600,3)+' hours';
+}
+function logMap(v, lo, hi){ return lo*Math.pow(hi/lo, v); }     // v 0..1
+function logInv(x, lo, hi){ return Math.log(x/lo)/Math.log(hi/lo); }
+function segSet(el, attr, val){ el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset[attr]===String(val)))); }
+
+const state = { fc: 98.1e6, tab: 'fm', t: 0, running: true };
+const dirty = {};
+function dirtyAll(){ ['dial','fmspec','ion','trip','wgtable','wvall','wfmap','wfch','pwx'].forEach(k=>dirty[k]=true); }
+
+/* ================= dial ================= */
+const dial = $('#dial');
+function drawDial(){
+  const {ctx,w,h} = setup(dial);
+  ctx.clearRect(0,0,w,h);
+  const padX = 24, x0 = padX, x1 = w - padX, top = 16, scaleY = 70;
+  const fx = f => lerp(x0, x1, (f-88)/20);
+  // tick scale
+  ctx.strokeStyle = COL.ink; ctx.fillStyle = COL.ink; ctx.lineWidth = 1;
+  for(let f=88; f<=108.001; f+=0.2){
+    const fr = Math.round(f*10)/10, x = Math.round(fx(fr))+.5;
+    const major = Math.abs(fr - Math.round(fr/2)*2) < 1e-6, mid = Math.abs(fr-Math.round(fr))<1e-6;
+    const len = major ? 22 : mid ? 14 : 7;
+    ctx.globalAlpha = major?1: mid?.7:.35;
+    ctx.beginPath(); ctx.moveTo(x, scaleY); ctx.lineTo(x, scaleY-len); ctx.stroke();
+    if(major && (w>520 || fr%4===0)){ ctx.globalAlpha=1; ctx.font = '600 18px "Big Shoulders Display", sans-serif'; ctx.textAlign='center'; ctx.fillText(String(fr), x, top+8); }
+  }
+  ctx.globalAlpha = 1;
+  ctx.font = '500 10px "IBM Plex Mono", monospace'; ctx.fillStyle = COL.ink2; ctx.textAlign='right'; ctx.fillText('MHz', x1, scaleY+14);
+  ctx.textAlign='left'; ctx.fillText('FM BROADCAST BAND', x0, scaleY+14);
+  // needle
+  const nx = fx(state.fc/1e6);
+  ctx.strokeStyle = COL.accent; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(nx, top-6); ctx.lineTo(nx, scaleY+4); ctx.stroke();
+  ctx.fillStyle = COL.accent; ctx.beginPath(); ctx.arc(nx, scaleY+4, 5, 0, Math.PI*2); ctx.fill();
+  // wave to scale vs a person
+  const lam = C0/state.fc; // metres
+  const baseY = h - 18, gy = scaleY + 30;
+  const pxPerM = Math.min((x1-x0-60)/(lam*2.2), (baseY-gy)/1.9);
+  const personX = x0 + 14;
+  // person 1.7 m
+  const ph = 1.7*pxPerM; ctx.strokeStyle = COL.ink; ctx.lineWidth = 2;
+  const hx = personX, hy = baseY - ph;
+  ctx.beginPath(); ctx.arc(hx, hy + ph*0.08, ph*0.08, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(hx, hy+ph*0.16); ctx.lineTo(hx, hy+ph*0.58);
+  ctx.moveTo(hx, hy+ph*0.58); ctx.lineTo(hx-ph*0.12, baseY); ctx.moveTo(hx, hy+ph*0.58); ctx.lineTo(hx+ph*0.12, baseY);
+  ctx.moveTo(hx-ph*0.16, hy+ph*0.3); ctx.lineTo(hx+ph*0.16, hy+ph*0.3); ctx.stroke();
+  ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.fillStyle=COL.ink2; ctx.textAlign='center'; ctx.fillText('you, 1.7 m', hx, baseY+13);
+  // ground line
+  ctx.strokeStyle = COL.rule; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0, baseY+.5); ctx.lineTo(x1, baseY+.5); ctx.stroke();
+  // wave
+  const wx0 = personX + 40, wl = lam*pxPerM, amp = Math.min(22, (baseY-gy)/2 - 4), my = (gy+baseY)/2 - 6;
+  const shift = state.t * 0.5;
+  ctx.strokeStyle = COL.t1; ctx.lineWidth = 2; ctx.beginPath();
+  for(let x=wx0; x<=x1; x+=2){ const y = my - amp*Math.sin(2*Math.PI*((x-wx0)/wl - shift)); x===wx0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.stroke();
+  // lambda bracket
+  const bx0 = wx0, bx1 = wx0 + wl, by = my + amp + 10;
+  if(bx1 < x1){
+    ctx.strokeStyle = COL.accent; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(bx0,by-4); ctx.lineTo(bx0,by); ctx.lineTo(bx1,by); ctx.lineTo(bx1,by-4); ctx.stroke();
+    ctx.fillStyle = COL.accent; ctx.font='500 11px "IBM Plex Mono", monospace'; ctx.textAlign='center';
+    ctx.fillText('λ = '+sig(lam,3)+' m', (bx0+bx1)/2, by+13);
+  }
+}
+function setFc(mhz){
+  mhz = clamp(Math.round(mhz*10)/10, 88, 108); state.fc = mhz*1e6;
+  const lam = C0/state.fc;
+  $('#r-f').innerHTML = mhz.toFixed(1)+' <small>MHz</small>';
+  $('#r-l').innerHTML = lam.toFixed(2)+' <small>m</small>';
+  $('#r-t').innerHTML = (1e9/state.fc).toFixed(2)+' <small>ns</small>';
+  $('#r-a').innerHTML = Math.round(lam/4*100)+' <small>cm</small>';
+  $('#r-c').textContent = fmtNum(Math.round(state.fc));
+  $('#fm-span').textContent = `span ±150 kHz around ${mhz.toFixed(1)} MHz`;
+  dirty.dial = dirty.fmspec = dirty.trip = true; updateTrip && updateTrip();
+  if(ionUseDial) setIonF(state.fc);
+}
+let dialDrag = false;
+function dialFromEvent(e){ const r = dial.getBoundingClientRect(); const x = e.clientX - r.left; setFc(88 + 20*clamp((x-24)/(r.width-48),0,1)); }
+dial.addEventListener('pointerdown', e => { dialDrag = true; dial.setPointerCapture(e.pointerId); dialFromEvent(e); });
+dial.addEventListener('pointermove', e => { if(dialDrag) dialFromEvent(e); });
+dial.addEventListener('pointerup', () => dialDrag = false);
+dial.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight'||e.key==='ArrowUp'){ setFc(state.fc/1e6 + (e.shiftKey?1:0.1)); e.preventDefault(); }
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown'){ setFc(state.fc/1e6 - (e.shiftKey?1:0.1)); e.preventDefault(); }
+});
+
+/* ================= FM ================= */
+const fm = { mode:'fm', tone:1000, dev:30000, noise:false };
+function besselAll(x, N){
+  const out = new Float64Array(N+1);
+  if(x < 1e-9){ out[0]=1; return out; }
+  const big = Math.max(N, x);
+  let M = 2*Math.floor((big + 20 + Math.sqrt(40*big))/2);
+  const J = new Float64Array(M+2);
+  let jp1 = 0, j = 1e-30; J[M] = j;
+  for(let k=M; k>=1; k--){
+    const jm1 = (2*k/x)*j - jp1; jp1 = j; j = jm1; J[k-1] = j;
+    if(Math.abs(j) > 1e200){ for(let i=k-1;i<=M;i++) J[i]*=1e-200; j*=1e-200; jp1*=1e-200; }
+  }
+  let s = J[0]; for(let k=2;k<=M;k+=2) s += 2*J[k];
+  for(let i=0;i<=N;i++) out[i] = J[i]/s;
+  return out;
+}
+function toneFromSlider(v){ return logMap(v/1000, 100, 15000); }
+function updateFM(){
+  fm.tone = toneFromSlider(+$('#fm-tone').value); fm.dev = +$('#fm-dev').value*1000;
+  $('#fm-tone-o').textContent = fmtFreq(fm.tone);
+  $('#fm-dev-o').textContent = fm.mode==='fm' ? `±${fmtNum(fm.dev/1000)} kHz` : `${Math.round(fm.dev/75000*100)}% depth`;
+  $('label[for=fm-dev]').textContent = fm.mode==='fm' ? 'Loudness → deviation' : 'Loudness → AM depth';
+  const beta = fm.dev/fm.tone;
+  if(fm.mode==='fm'){
+    const bw = 2*(fm.dev + fm.tone);
+    $('#fm-beta').textContent = beta.toFixed(beta<10?2:1);
+    $('#fm-bw').textContent = fmtFreq(bw);
+    $('#fm-fit').innerHTML = bw <= 200000 ? '<span class="chip good">yes</span>' : '<span class="chip bad">spills over</span>';
+    const j0 = besselAll(beta, 1)[0];
+    $('#fm-j0').textContent = (Math.abs(j0)*100).toFixed(0)+'% of full';
+  } else {
+    $('#fm-beta').textContent = 'n/a (AM)';
+    $('#fm-bw').textContent = fmtFreq(2*fm.tone);
+    $('#fm-fit').innerHTML = '<span class="chip good">yes</span>';
+    $('#fm-j0').textContent = '100% (always)';
+  }
+  if(audio.osc) audio.osc.frequency.setTargetAtTime(fm.tone, audio.ctx.currentTime, 0.02);
+  if(audio.gain) audio.gain.gain.setTargetAtTime(0.02 + 0.1*(fm.dev/75000), audio.ctx.currentTime, 0.05);
+  dirty.fmspec = true;
+}
+['#fm-tone','#fm-dev'].forEach(s => $(s).addEventListener('input', updateFM));
+$('#fm-noise').addEventListener('change', e => { fm.noise = e.target.checked; });
+$('#fm-mode').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; fm.mode = b.dataset.v; segSet($('#fm-mode'),'v',fm.mode); updateFM(); });
+const audio = {};
+$('#fm-play').addEventListener('click', () => {
+  try{
+    if(audio.osc){ audio.gain.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.03); const o = audio.osc; setTimeout(()=>o.stop(), 150); audio.osc = null; $('#fm-play').textContent = 'Play the audio tone'; return; }
+    audio.ctx = audio.ctx || new (window.AudioContext||window.webkitAudioContext)();
+    audio.osc = audio.ctx.createOscillator(); audio.gain = audio.ctx.createGain();
+    audio.osc.type='sine'; audio.osc.frequency.value = fm.tone; audio.gain.gain.value = 0;
+    audio.osc.connect(audio.gain).connect(audio.ctx.destination); audio.osc.start();
+    audio.gain.gain.setTargetAtTime(0.02 + 0.1*(fm.dev/75000), audio.ctx.currentTime, 0.05);
+    $('#fm-play').textContent = 'Stop the tone';
+  }catch(err){ $('#fm-play').textContent = 'Audio not available here'; }
+});
+// deterministic noise
+function hash(n){ n = (n<<13)^n; return 1 - ((n*(n*n*15731+789221)+1376312589)&0x7fffffff)/1073741824; }
+function drawFMScope(){
+  const cv = $('#fm-scope'); const {ctx,w,h} = setup(cv);
+  ctx.clearRect(0,0,w,h);
+  const rows = [h*0.17, h*0.5, h*0.83], amp = [h*0.1, h*0.17, h*0.1];
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  for(let i=0;i<=10;i++){ const x = Math.round(i*w/10)+.5; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  rows.forEach(y => { ctx.beginPath(); ctx.moveTo(0,Math.round(y)+.5); ctx.lineTo(w,Math.round(y)+.5); ctx.stroke(); });
+  ctx.strokeStyle = COL.rule; [h/3, 2*h/3].forEach(y=>{ ctx.beginPath(); ctx.moveTo(0,Math.round(y)+.5); ctx.lineTo(w,Math.round(y)+.5); ctx.stroke(); });
+  const fmVis = 1 + 3*logInv(fm.tone,100,15000);   // message cycles per window
+  const fcVis = w < 500 ? 22 : 34;                   // carrier cycles per window
+  const d = fm.dev/75000;
+  const devVis = d * 0.55 * fcVis;
+  const sh = state.t * 0.12;
+  const N = Math.floor(w*2), frame = Math.floor(state.t*12);
+  const msg = x => Math.sin(2*Math.PI*fmVis*(x+sh));
+  const nz = i => fm.noise ? (hash(i*7 + frame*9973)*0.35 + (hash(i*3+frame*31)>0.985 ? hash(i+frame)*1.4 : 0)) : 0;
+  // audio in
+  ctx.strokeStyle = COL.t3; ctx.lineWidth=2; ctx.beginPath();
+  for(let i=0;i<=N;i++){ const x=i/N; const y = rows[0] - amp[0]*msg(x); i?ctx.lineTo(x*w,y):ctx.moveTo(0,y); } ctx.stroke();
+  // on-air
+  ctx.strokeStyle = COL.t1; ctx.lineWidth=1.4; ctx.beginPath();
+  for(let i=0;i<=N;i++){
+    const x=i/N, X = x+sh; let y;
+    if(fm.mode==='fm'){ const ph = 2*Math.PI*fcVis*X - (devVis/fmVis)*Math.cos(2*Math.PI*fmVis*X); y = Math.cos(ph); }
+    else { const m = d*0.9; y = (1 + m*Math.sin(2*Math.PI*fmVis*X))/(1+m) * Math.cos(2*Math.PI*fcVis*X); }
+    y += nz(i);
+    const Y = rows[1] - amp[1]*y; i?ctx.lineTo(x*w,Y):ctx.moveTo(0,Y);
+  } ctx.stroke();
+  // recovered
+  ctx.strokeStyle = COL.t2; ctx.lineWidth=2; ctx.beginPath();
+  let sm = 0;
+  for(let i=0;i<=N;i++){
+    const x=i/N; let v = (fm.mode==='fm' ? (d>0?1:0) : (d>0?1:0)) * msg(x);
+    if(fm.noise){ const n = nz(i) * (fm.mode==='fm' ? 0.06 : 0.9); sm = sm*0.7 + n*0.3; v += sm*2; }
+    const Y = rows[2] - amp[2]*v; i?ctx.lineTo(x*w,Y):ctx.moveTo(0,Y);
+  } ctx.stroke();
+  ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.fillStyle=COL.ink2; ctx.textAlign='left';
+  ctx.fillText('AUDIO IN', 8, 14); ctx.fillText(fm.mode==='fm'?'ON AIR · FM: crests bunch and stretch':'ON AIR · AM: height changes', 8, h/3+14); ctx.fillText('RECOVERED AUDIO', 8, 2*h/3+14);
+}
+function drawFMSpec(){
+  const cv = $('#fm-spec'); const {ctx,w,h} = setup(cv);
+  ctx.clearRect(0,0,w,h);
+  const padB = 24, padT = 14, span = 150000;
+  const fx = df => w/2 + df/span*(w/2-10);
+  const fy = a => h - padB - a*(h-padB-padT);
+  // channel shading
+  ctx.fillStyle = rgba('t3', 0.08); ctx.fillRect(fx(-100000), padT, fx(100000)-fx(-100000), h-padB-padT);
+  ctx.strokeStyle = rgba('t3',0.5); ctx.setLineDash([4,4]);
+  [-100000,100000].forEach(f=>{ ctx.beginPath(); ctx.moveTo(Math.round(fx(f))+.5,padT); ctx.lineTo(Math.round(fx(f))+.5,h-padB); ctx.stroke(); });
+  ctx.setLineDash([]);
+  // axis
+  ctx.strokeStyle = COL.rule; ctx.beginPath(); ctx.moveTo(0,h-padB+.5); ctx.lineTo(w,h-padB+.5); ctx.stroke();
+  ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.fillStyle=COL.ink2; ctx.textAlign='center';
+  for(let f=-150000; f<=150000; f+=50000){ const x=fx(f); ctx.fillText(f===0? (state.fc/1e6).toFixed(1)+' MHz' : (f>0?'+':'−')+Math.abs(f/1000)+'k', clamp(x,22,w-22), h-8); }
+  ctx.textAlign='left'; ctx.fillStyle = COL.t3; ctx.fillText('200 kHz channel', fx(-100000)+4, padT+10);
+  // bars
+  const bars = [];
+  if(fm.mode==='fm'){
+    const beta = fm.dev/fm.tone; const nMax = Math.min(Math.ceil(span/fm.tone), 4000);
+    const J = besselAll(beta, nMax);
+    for(let n=0;n<=nMax;n++){ const a = Math.abs(J[n]); if(a<0.003) continue; bars.push([n*fm.tone, a]); if(n) bars.push([-n*fm.tone, a]); }
+  } else {
+    const m = fm.dev/75000*0.9; bars.push([0,1]); if(m>0){ bars.push([fm.tone, m/2]); bars.push([-fm.tone, m/2]); }
+  }
+  const lw = bars.length > 400 ? 1 : 2;
+  let top = 0; bars.forEach(b => top = Math.max(top, b[1])); top = Math.max(top*1.25, 0.12);
+  ctx.fillStyle = COL.ink2; ctx.textAlign='right'; ctx.fillText('bar height = share of amplitude (auto-scaled)', w-6, padT+10);
+  bars.forEach(([df,a0]) => { if(Math.abs(df)>span) return; const x = fx(df); const a = a0/top;
+    ctx.fillStyle = df===0 ? COL.accent : COL.t1; ctx.fillRect(x-lw/2, fy(a), lw, fy(0)-fy(a)); });
+  // carson bracket
+  if(fm.mode==='fm'){
+    const bw = fm.dev + fm.tone; const y = padT + 22;
+    ctx.strokeStyle = COL.ink; ctx.lineWidth=1;
+    const a = fx(-Math.min(bw,span)), b = fx(Math.min(bw,span));
+    ctx.beginPath(); ctx.moveTo(a,y+4); ctx.lineTo(a,y); ctx.lineTo(b,y); ctx.lineTo(b,y+4); ctx.stroke();
+    ctx.fillStyle = COL.ink; ctx.textAlign='center'; ctx.fillText('≈ '+fmtFreq(2*bw)+' used', w/2, y-4);
+  }
+}
+
+/* ================= Ionosphere ================= */
+let ionUseDial = true;
+const ion = { f: 98.1e6, alpha: 20, day: true };
+function setIonF(hz){ ion.f = hz; $('#ion-f').value = Math.round(logInv(hz,1e6,1e10)*1000); updateIon(); }
+function updateIon(){
+  ion.alpha = +$('#ion-a').value;
+  $('#ion-f-o').textContent = fmtFreq(ion.f);
+  $('#ion-a-o').textContent = ion.alpha+'°';
+  dirty.ion = true;
+}
+$('#ion-f').addEventListener('input', e => { ionUseDial = false; ion.f = logMap(+e.target.value/1000, 1e6, 1e10); updateIon(); });
+$('#ion-a').addEventListener('input', updateIon);
+$('#ion-pre').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.f==='dial'){ ionUseDial = true; setIonF(state.fc); } else { ionUseDial = false; setIonF(+b.dataset.f*1e6); } });
+$('#ion-day').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; ion.day = b.dataset.v==='day'; segSet($('#ion-day'),'v',b.dataset.v); updateIon(); });
+
+function ionModel(){
+  const foF2 = ion.day ? 10e6 : 5e6;
+  const muf = foF2 * Math.min(1/Math.sin(ion.alpha*Math.PI/180), 3.6);
+  let verdict;
+  if(ion.day && ion.f < 3e6) verdict = 'absorbed';
+  else if(ion.f < muf) verdict = 'reflect';
+  else verdict = 'escape';
+  return {foF2, muf, verdict};
+}
+function rayExit(P, d, Cc, r){ // from inside circle, forward hit
+  const ox=P[0]-Cc[0], oy=P[1]-Cc[1]; const b = d[0]*ox+d[1]*oy, c = ox*ox+oy*oy-r*r; const disc = b*b-c; if(disc<0) return null; return -b+Math.sqrt(disc); }
+function rayEnter(P, d, Cc, r){ // from outside, first hit
+  const ox=P[0]-Cc[0], oy=P[1]-Cc[1]; const b = d[0]*ox+d[1]*oy, c = ox*ox+oy*oy-r*r; const disc = b*b-c; if(disc<0) return null; const s = -b-Math.sqrt(disc); return s>0?s:null; }
+function drawIon(){
+  const cv = $('#ion'); const {ctx,w,h} = setup(cv); ctx.clearRect(0,0,w,h);
+  const s = (h*0.62)/400, R = 6371*s, Cc = [w/2, h-34+R];
+  const ring = (km, fill) => { ctx.beginPath(); ctx.arc(Cc[0],Cc[1],R+km*s,0,Math.PI*2); fill ? ctx.fill() : ctx.stroke(); };
+  // sky layers
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0,0,w,h); ctx.clip();
+  // F layer band
+  ctx.fillStyle = rgba('t1', ion.day?0.16:0.10); ctx.beginPath(); ctx.arc(Cc[0],Cc[1],R+400*s,0,Math.PI*2); ctx.arc(Cc[0],Cc[1],R+200*s,0,Math.PI*2,true); ctx.fill();
+  ctx.fillStyle = rgba('t1', ion.day?0.26:0.16); ctx.beginPath(); ctx.arc(Cc[0],Cc[1],R+340*s,0,Math.PI*2); ctx.arc(Cc[0],Cc[1],R+260*s,0,Math.PI*2,true); ctx.fill();
+  if(ion.day){ ctx.fillStyle = rgba('t2',0.16); ctx.beginPath(); ctx.arc(Cc[0],Cc[1],R+90*s,0,Math.PI*2); ctx.arc(Cc[0],Cc[1],R+60*s,0,Math.PI*2,true); ctx.fill(); }
+  ctx.fillStyle = rgba('t1',0.08); ctx.beginPath(); ctx.arc(Cc[0],Cc[1],R+120*s,0,Math.PI*2); ctx.arc(Cc[0],Cc[1],R+100*s,0,Math.PI*2,true); ctx.fill();
+  // earth
+  ctx.fillStyle = rgba('t3',0.22); ring(0,true);
+  ctx.strokeStyle = COL.t3; ctx.lineWidth = 1.5; ring(0,false);
+  // altitude ticks at left edge
+  ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.fillStyle=COL.ink2; ctx.textAlign='right';
+  const yAt = km => Cc[1] - (R+km*s);
+  [100,200,300,400].forEach(k => { ctx.fillText(k+' km', w-6, yAt(k)+3); });
+  ctx.textAlign='left';
+  ctx.fillText('F LAYER', 8, yAt(300)+3);
+  if(ion.day) ctx.fillText('D LAYER (daytime only)', 8, yAt(75)+3);
+  ctx.fillText('E', 8, yAt(110)+3);
+  ctx.fillText('SPACE', 8, 14);
+  // tower
+  const tx = w*0.12, ang0 = Math.asin((tx-Cc[0])/R);
+  const P0 = [Cc[0]+R*Math.sin(ang0), Cc[1]-R*Math.cos(ang0)];
+  const n0 = [(P0[0]-Cc[0])/R, (P0[1]-Cc[1])/R], t0 = [-n0[1], n0[0]];
+  ctx.strokeStyle = COL.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(P0[0]-6,P0[1]); ctx.lineTo(P0[0],P0[1]-18); ctx.lineTo(P0[0]+6,P0[1]); ctx.moveTo(P0[0]-4,P0[1]-6); ctx.lineTo(P0[0]+4,P0[1]-6); ctx.stroke();
+  // ray
+  const a = ion.alpha*Math.PI/180; const d = [Math.cos(a)*t0[0]+Math.sin(a)*n0[0], Math.cos(a)*t0[1]+Math.sin(a)*n0[1]];
+  const {muf, verdict} = ionModel();
+  const pts = [P0];
+  let landing = null, endLabel = '';
+  const at = (P,dd,k) => [P[0]+dd[0]*k, P[1]+dd[1]*k];
+  if(verdict==='absorbed'){
+    const k = rayExit(P0,d,Cc,R+75*s); pts.push(at(P0,d,k)); endLabel = 'absorbed';
+  } else if(verdict==='reflect'){
+    const kA = rayExit(P0,d,Cc,R+200*s), A = at(P0,d,kA);
+    const kQ = rayExit(P0,d,Cc,R+300*s), Q = at(P0,d,kQ);
+    const n = [(Q[0]-Cc[0])/(R+300*s), (Q[1]-Cc[1])/(R+300*s)], dn = d[0]*n[0]+d[1]*n[1];
+    const d2 = [d[0]-2*dn*n[0], d[1]-2*dn*n[1]];
+    const kB = rayEnter(Q,d2,Cc,R+200*s) ?? 0, B = at(Q,d2,kB);
+    const kG = rayEnter(B,d2,Cc,R), G = kG!=null ? at(B,d2,kG) : at(B,d2,3000);
+    pts.push(A);
+    for(let i=1;i<=16;i++){ const u=i/16; pts.push([(1-u)*(1-u)*A[0]+2*(1-u)*u*Q[0]+u*u*B[0], (1-u)*(1-u)*A[1]+2*(1-u)*u*Q[1]+u*u*B[1]]); }
+    pts.push(G); landing = G;
+  } else {
+    const kA = rayExit(P0,d,Cc,R+200*s), A = at(P0,d,kA); pts.push(A);
+    const kT = rayExit(P0,d,Cc,R+400*s), T = at(P0,d,kT);
+    // slight bend toward vertical in the layer, less for higher f
+    const bend = clamp(0.25*(ionModel().foF2/ion.f), 0, 0.2);
+    const nT = [(T[0]-Cc[0]), (T[1]-Cc[1])]; const L = Math.hypot(nT[0],nT[1]); const d3 = [d[0]*(1-bend)+nT[0]/L*bend, d[1]*(1-bend)+nT[1]/L*bend]; const L3 = Math.hypot(d3[0],d3[1]);
+    pts.push(T); pts.push(at(T,[d3[0]/L3,d3[1]/L3], 2000));
+  }
+  const drawPath = () => { ctx.beginPath(); pts.forEach((p,i)=> i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); };
+  ctx.strokeStyle = rgba('accent',0.35); ctx.lineWidth = 2; drawPath();
+  ctx.strokeStyle = COL.accent; ctx.lineWidth = 3; ctx.setLineDash([16,34]); ctx.lineDashOffset = -state.t*90; drawPath(); ctx.setLineDash([]);
+  const last = pts[pts.length-1];
+  ctx.font='600 12px "IBM Plex Sans", sans-serif'; ctx.fillStyle = COL.ink;
+  if(verdict==='absorbed'){ ctx.strokeStyle=COL.bad; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(last[0]-5,last[1]-5); ctx.lineTo(last[0]+5,last[1]+5); ctx.moveTo(last[0]+5,last[1]-5); ctx.lineTo(last[0]-5,last[1]+5); ctx.stroke(); ctx.textAlign='left'; ctx.fillText('soaked up by the D layer', last[0]+10, last[1]+4); }
+  if(verdict==='escape'){ ctx.textAlign='center'; const ex = clamp(pts[pts.length-2][0] + (last[0]-pts[pts.length-2][0])*0.1, 80, w-80); ctx.fillText('passes through → space', clamp(ex+40,90,w-90), 30); }
+  if(landing && landing[0] < w-10){ ctx.fillStyle = COL.accent; ctx.beginPath(); ctx.arc(landing[0], landing[1], 5, 0, Math.PI*2); ctx.fill(); ctx.fillStyle=COL.ink; ctx.textAlign='center'; ctx.fillText('heard here', landing[0], landing[1]+20); }
+  ctx.restore();
+  // stats
+  $('#ion-muf').textContent = fmtFreq(muf);
+  const vtxt = {absorbed:'<span class="chip warn">absorbed</span>', reflect:'<span class="chip good">bounces back</span>', escape:'<span class="chip bad">escapes to space</span>'}[verdict];
+  $('#ion-verdict').innerHTML = vtxt;
+  if(landing){
+    const ang = Math.atan2(landing[0]-Cc[0], Cc[1]-landing[1]) - Math.atan2(P0[0]-Cc[0], Cc[1]-P0[1]);
+    const km = Math.abs(ang)*6371;
+    $('#ion-range').textContent = km < 30 ? 'right back overhead' : '≈ '+fmtNum(Math.round(km/10)*10)+' km' + (landing[0] > w-10 ? ' (off screen)' : '');
+  } else $('#ion-range').textContent = verdict==='escape' ? 'never comes back' : '—';
+}
+
+/* ================= Trip ================= */
+const TARGETS = [
+  {name:'FM coverage edge', km:60, note:'where the Earth’s curve hides the tower'},
+  {name:'Space station', km:408},
+  {name:'GPS satellite', km:20200},
+  {name:'Geostationary', km:35786},
+  {name:'Moon', km:384400},
+  {name:'Mars (average)', km:225e6},
+  {name:'Voyager 1', km:25.8e9, note:'almost one light-day (2026)'},
+];
+const trip = { i:4, P:5e4, start:-1 };
+function tripDelay(){ return TARGETS[trip.i].km*1000/C0; }
+function tripDisplayDur(){ const d = tripDelay(); return d<1 ? 1.5 : d>5 ? 5 : d; }
+function updateTrip(){
+  trip.P = Math.pow(10, +$('#trip-p').value/100);
+  $('#trip-p-o').textContent = trip.P>=1e6 ? sig(trip.P/1e6,2)+' MW' : trip.P>=1e3 ? sig(trip.P/1e3,2)+' kW' : sig(trip.P,2)+' W';
+  const T = TARGETS[trip.i], dm = T.km*1000, f = state.fc, lam = C0/f;
+  const fspl = 20*Math.log10(4*Math.PI*dm*f/C0);
+  const S = trip.P/(4*Math.PI*dm*dm);
+  const Ae = 1.64*lam*lam/(4*Math.PI);
+  const Pr = S*Ae, dbm = 10*Math.log10(Pr*1000);
+  $('#trip-d').textContent = T.km>=1e9 ? sig(T.km/1e9,3)+' billion km' : T.km>=1e6 ? sig(T.km/1e6,3)+' million km' : fmtNum(T.km)+' km';
+  $('#trip-t').textContent = fmtTime(tripDelay());
+  $('#trip-l').textContent = fmtNum(fspl,1)+' dB';
+  $('#trip-s').textContent = sci(S)+' W/m²';
+  $('#trip-r').textContent = fmtNum(dbm,0)+' dBm';
+  $('#trip-ok').innerHTML = dbm > -100 ? '<span class="chip good">clear</span>' : dbm > -115 ? '<span class="chip warn">faint, hissy</span>' : '<span class="chip bad">lost in noise</span>';
+  const d = tripDelay(), dd = tripDisplayDur();
+  $('#trip-speed').textContent = d<1 ? `slowed down ${fmtNum(Math.round(dd/d))}×` : d>5 ? `sped up ${fmtNum(Math.round(d/dd))}×` : 'real time';
+  dirty.trip = true;
+}
+$('#trip-p').addEventListener('input', updateTrip);
+$('#trip-to').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; trip.i = +b.dataset.i; segSet($('#trip-to'),'i',trip.i); updateTrip(); trip.start = performance.now(); });
+$('#trip-send').addEventListener('click', () => { trip.start = performance.now(); });
+function drawTrip(now){
+  const cv = $('#trip'); const {ctx,w,h} = setup(cv); ctx.clearRect(0,0,w,h);
+  // ladder
+  const lx0 = 30, lx1 = w-30, ly = 62, lo = 1, hi = 11; // log10 km
+  const X = km => lerp(lx0, lx1, (Math.log10(km)-lo)/(hi-lo));
+  ctx.strokeStyle = COL.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(lx0,ly+.5); ctx.lineTo(lx1,ly+.5); ctx.stroke();
+  ctx.font='500 9.5px "IBM Plex Mono", monospace'; ctx.fillStyle=COL.ink2; ctx.textAlign='center';
+  for(let e=lo;e<=hi;e++){ const x = X(Math.pow(10,e)); ctx.fillRect(Math.round(x),ly-3,1,7); if(w>560 || e%2===1) ctx.fillText(['1','10','100','1k','10k','100k','1M','10M','100M','1B','10B','100B'][e], x, ly+18); }
+  ctx.textAlign='right'; ctx.fillText('km (log scale)', lx1, ly+32);
+  TARGETS.forEach((T,i) => {
+    const x = X(T.km), sel = i===trip.i, up = i%2===0;
+    ctx.fillStyle = sel ? COL.accent : COL.ink; ctx.beginPath(); ctx.arc(x, ly, sel?6:3.5, 0, Math.PI*2); ctx.fill();
+    ctx.font = (sel?'600 ':'500 ')+'11px "IBM Plex Sans", sans-serif'; ctx.textAlign = x<70?'left': x>w-70?'right':'center';
+    if(sel || w>620) ctx.fillText(T.name, x, up ? ly-14 : ly-28);
+  });
+  // pulse lane
+  const py = h*0.68, ex = 40, tx = w-60;
+  ctx.fillStyle = COL.t1; ctx.beginPath(); ctx.arc(ex, py, 14, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = COL.t3; ctx.beginPath(); ctx.arc(ex-4, py-3, 5, 0, Math.PI*2); ctx.arc(ex+5,py+5,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='center'; ctx.fillText('EARTH', ex, py+30);
+  const T = TARGETS[trip.i];
+  const dd = tripDisplayDur(), real = tripDelay();
+  let p = trip.start<0 ? 1 : (now - trip.start)/1000/dd;
+  const arrived = p >= 1; p = clamp(p,0,1);
+  ctx.fillStyle = arrived && trip.start>=0 && (now-trip.start)/1000 < dd+0.6 ? COL.accent : COL.ink;
+  ctx.beginPath(); ctx.arc(tx, py, 8, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = COL.ink; ctx.font='600 12px "IBM Plex Sans", sans-serif'; ctx.fillText(T.name, tx, py+30);
+  ctx.strokeStyle = COL.rule; ctx.setLineDash([3,5]); ctx.beginPath(); ctx.moveTo(ex+18,py); ctx.lineTo(tx-12,py); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.fillText('not to scale', (ex+tx)/2, py+30);
+  if(!arrived){
+    const fx = lerp(ex+16, tx, p);
+    for(let k=0;k<4;k++){
+      const r = (fx-ex) - k*14; if(r<16) continue;
+      ctx.strokeStyle = rgba('accent', Math.max(0.12, 1 - k*0.25) * Math.max(0.25, 1-p*0.75));
+      ctx.lineWidth = k===0?2.5:1.5; ctx.beginPath(); ctx.arc(ex, py, r, -0.55, 0.55); ctx.stroke();
+    }
+  }
+  ctx.textAlign='left'; ctx.font='500 12px "IBM Plex Mono", monospace'; ctx.fillStyle = COL.ink;
+  const el = trip.start<0 ? real : p*real;
+  const txt = arrived ? `arrived after ${fmtTime(real)} · a reply takes the same again` : `travelling… ${fmtTime(el)} of ${fmtTime(real)}`;
+  ctx.fillText(txt, 16, h-12);
+}
+
+/* ================= Waveguide ================= */
+const wg = { f:10e9, a:22.86e-3, br:10.16/22.86, m:1, rays:true };
+const WG_PRE = { wr90:{a:22.86e-3, br:10.16/22.86, f:10e9}, oven:{a:86.36e-3, br:0.5, f:2.45e9}, fm:{a:200e-3, br:0.5, f:null} };
+function wgFc(m,n){ const b = wg.a*wg.br; return C0/2*Math.sqrt((m/wg.a)**2 + (n/b)**2); }
+function wgSync(){ $('#wg-f').value = Math.round(logInv(wg.f, 5e7, 4e10)*1000); $('#wg-a').value = Math.round(logInv(wg.a*1000, 5, 2000)*1000); updateWG(); }
+function updateWG(){
+  $('#wg-f-o').textContent = fmtFreq(wg.f);
+  $('#wg-a-o').textContent = (wg.a*1000 >= 100 ? fmtNum(wg.a*1000,0) : fmtNum(wg.a*1000,1))+' mm';
+  const fc = wgFc(wg.m,0), lam = C0/wg.f, prop = wg.f > fc;
+  $('#wg-fc').textContent = fmtFreq(fc);
+  $('#wg-l0').textContent = fmtLen(lam);
+  if(prop){
+    const q = Math.sqrt(1-(fc/wg.f)**2);
+    $('#wg-st').innerHTML = '<span class="chip good">travels</span>';
+    $('#wg-lg').textContent = fmtLen(lam/q);
+    $('#wg-vp').textContent = sig(1/q,3)+' × c';
+    $('#wg-vg').textContent = sig(q,3)+' × c';
+  } else {
+    const alpha = 2*Math.PI/C0*Math.sqrt(fc*fc - wg.f*wg.f);
+    $('#wg-st').innerHTML = '<span class="chip bad">blocked</span>';
+    $('#wg-lg').textContent = 'fades 63% every '+fmtLen(1/alpha);
+    $('#wg-vp').textContent = '—'; $('#wg-vg').textContent = '0 (no flow)';
+  }
+  const modes = [['TE₁₀',1,0],['TE₂₀',2,0],['TE₀₁',0,1],['TE₁₁ / TM₁₁',1,1],['TE₃₀',3,0],['TE₂₁ / TM₂₁',2,1]];
+  $('#wg-table tbody').innerHTML = modes.map(([nm,m,n]) => { const c = wgFc(m,n); const ok = wg.f > c;
+    return `<tr><td>${nm}</td><td class="mono">${fmtFreq(c)}</td><td>${ok?'<span class="chip good">carries</span>':'<span class="chip bad">blocked</span>'}</td></tr>`; }).join('');
+}
+$('#wg-f').addEventListener('input', e => { wg.f = logMap(+e.target.value/1000, 5e7, 4e10); segSet($('#wg-pre'),'p',''); updateWG(); });
+$('#wg-a').addEventListener('input', e => { wg.a = logMap(+e.target.value/1000, 5, 2000)/1000; segSet($('#wg-pre'),'p',''); updateWG(); });
+$('#wg-m').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; wg.m = +b.dataset.m; segSet($('#wg-m'),'m',wg.m); updateWG(); });
+$('#wg-pre').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const p = WG_PRE[b.dataset.p];
+  wg.a = p.a; wg.br = p.br; wg.f = p.f ?? state.fc; wg.m = 1; segSet($('#wg-m'),'m',1); segSet($('#wg-pre'),'p',b.dataset.p); wgSync(); });
+$('#wg-rays').addEventListener('change', e => wg.rays = e.target.checked);
+const wgOff = document.createElement('canvas'); wgOff.width = 220; wgOff.height = 36;
+function drawWG(){
+  const cv = $('#wg-top'); const {ctx,w,h} = setup(cv); ctx.clearRect(0,0,w,h);
+  const wall = 18, Hg = h - 2*wall, ppm = Hg / wg.a, Lm = w/ppm;
+  const fc = wgFc(wg.m,0), prop = wg.f > fc, lam = C0/wg.f;
+  const q = prop ? Math.sqrt(1-(fc/wg.f)**2) : 0;
+  const beta = prop ? 2*Math.PI*q/lam : 0, alpha = prop ? 0 : 2*Math.PI/C0*Math.sqrt(fc*fc-wg.f*wg.f);
+  const wt = 2*Math.PI*0.5*state.t;
+  const oc = wgOff.getContext('2d'), OW = wgOff.width, OH = wgOff.height, img = oc.createImageData(OW,OH);
+  for(let j=0;j<OH;j++){
+    const tr = Math.sin(wg.m*Math.PI*(j+.5)/OH);
+    for(let i=0;i<OW;i++){
+      const z = (i+.5)/OW*Lm;
+      const v = prop ? tr*Math.cos(wt - beta*z) : tr*Math.exp(-alpha*z)*Math.cos(wt);
+      const c = divColor(v*0.95); const k = (j*OW+i)*4; img.data[k]=c[0]; img.data[k+1]=c[1]; img.data[k+2]=c[2]; img.data[k+3]=255;
+    }
+  }
+  oc.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(wgOff, 0, wall, w, Hg);
+  // walls (hatched metal)
+  ctx.fillStyle = COL.ink2; ctx.fillRect(0,0,w,wall); ctx.fillRect(0,h-wall,w,wall);
+  ctx.strokeStyle = COL.panel; ctx.globalAlpha=.35; ctx.lineWidth=1;
+  for(let x=-wall;x<w;x+=8){ ctx.beginPath(); ctx.moveTo(x,wall); ctx.lineTo(x+wall,0); ctx.moveTo(x,h); ctx.lineTo(x+wall,h-wall); ctx.stroke(); }
+  ctx.globalAlpha=1;
+  ctx.fillStyle = COL.panel; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left'; ctx.fillText('METAL WALL', 8, 13);
+  ctx.textAlign='right'; ctx.fillText(`view length ${fmtLen(Lm)}  ·  width a = ${fmtLen(wg.a)}`, w-8, h-5);
+  if(prop && wg.rays){
+    const th = Math.asin(clamp(fc/wg.f,0,0.9999)), dz = wg.a/Math.tan(th); // metres along z per crossing
+    ctx.strokeStyle = COL.ink; ctx.globalAlpha=.55; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); let z=0, top=true; ctx.moveTo(0, wall);
+    while(z*ppm < w+50){ z += dz; top=!top; ctx.lineTo(z*ppm, top?wall:h-wall); } ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    // dot moving at c along ray
+    const segLen = wg.a/Math.sin(th); const cvis = lam*0.5; // m per s (visual)
+    const totalZ = Lm; const pathLen = totalZ/Math.cos(th);
+    const s = (cvis*state.t) % pathLen; const zz = s*Math.cos(th); const nseg = Math.floor(s/segLen), fr = (s - nseg*segLen)/segLen;
+    const xx = (nseg%2===0) ? fr : 1-fr;
+    ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(zz*ppm, wall + xx*Hg, 5, 0, Math.PI*2); ctx.fill();
+  }
+  if(!prop){ ctx.fillStyle = COL.ink; ctx.font='600 13px "IBM Plex Sans", sans-serif'; ctx.textAlign='center'; ctx.fillText('Below cutoff: the field dies out near the entrance', w/2, wall+Hg/2+4); }
+  // cross-section
+  const cc = $('#wg-cross'); const X = setup(cc); const c2 = X.ctx; c2.clearRect(0,0,X.w,X.h);
+  const b = wg.a*wg.br, sc = Math.min((X.w-20)/wg.a, (X.h-30)/b), rw = wg.a*sc, rh = b*sc, rx = (X.w-rw)/2, ry = 8;
+  c2.strokeStyle = COL.ink2; c2.lineWidth = 4; c2.strokeRect(rx,ry,rw,rh);
+  const amp = prop ? Math.cos(wt) : Math.cos(wt);
+  const cols = 11;
+  for(let i=0;i<cols;i++){
+    const xf = (i+.5)/cols, v = Math.sin(wg.m*Math.PI*xf)*amp, L = v*rh*0.42, x = rx + xf*rw, cy = ry+rh/2;
+    c2.strokeStyle = v>0 ? COL.t2 : COL.t1; c2.fillStyle = c2.strokeStyle; c2.lineWidth = 2;
+    if(Math.abs(L)<2) continue;
+    c2.beginPath(); c2.moveTo(x, cy+L); c2.lineTo(x, cy-L); c2.stroke();
+    const dir = Math.sign(L); c2.beginPath(); c2.moveTo(x, cy-L); c2.lineTo(x-3, cy-L+dir*6); c2.lineTo(x+3, cy-L+dir*6); c2.closePath(); c2.fill();
+  }
+  c2.fillStyle = COL.ink2; c2.font='500 10px "IBM Plex Mono", monospace'; c2.textAlign='center';
+  c2.fillText(`a = ${fmtLen(wg.a)}   b = ${fmtLen(b)}`, X.w/2, ry+rh+16);
+}
+
+/* ================= Wave packets ================= */
+const pk = { N:15, bw:7, r:0.5 };
+function updatePK(){
+  pk.N = +$('#pk-n').value; pk.bw = +$('#pk-bw').value; pk.r = +$('#pk-v').value/100;
+  $('#pk-n-o').textContent = pk.N; $('#pk-bw-o').textContent = '±'+pk.bw; $('#pk-v-o').textContent = pk.r.toFixed(2);
+}
+['#pk-n','#pk-bw','#pk-v'].forEach(s => $(s).addEventListener('input', updatePK));
+function drawPK(){
+  const cv = $('#pk-c'); const {ctx,w,h} = setup(cv); ctx.clearRect(0,0,w,h);
+  const n0 = 30, N = pk.N, s = N>1 ? Math.max(1, Math.round(2*pk.bw/(N-1))) : 1;
+  const ns = [], As = [];
+  for(let j=0;j<N;j++){ const n = n0 - Math.floor((N-1)/2)*s + j*s; ns.push(n); As.push(N===1?1:Math.exp(-(((n-n0)/(pk.bw*0.75+0.5))**2))); }
+  const Asum = As.reduce((a,b)=>a+b,0);
+  const vp = 0.06, vg = pk.r*vp, t = state.t;
+  const om = ns.map(n => 2*Math.PI*(vp*n0 + vg*(n-n0)));
+  // components (up to 7)
+  const topH = h*0.42, show = Math.min(7, N), step = N/show;
+  ctx.lineWidth = 1;
+  for(let c=0;c<show;c++){
+    const j = Math.floor(c*step + step/2), y0 = 10 + (c+.5)*(topH-10)/show, a = (topH-10)/show*0.4*As[j];
+    ctx.strokeStyle = rgba('ink2', 0.7); ctx.beginPath();
+    for(let x=0;x<=w;x+=2){ const X = x/w; const y = y0 - a*Math.cos(2*Math.PI*ns[j]*X - om[j]*t); x?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke();
+  }
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left';
+  ctx.fillText(N>show ? `${show} of ${N} waves shown` : `${N} wave${N>1?'s':''}`, 6, 12);
+  ctx.strokeStyle = COL.rule; ctx.beginPath(); ctx.moveTo(0,topH+.5); ctx.lineTo(w,topH+.5); ctx.stroke();
+  // sum
+  const my = topH + (h-topH)/2, amp = (h-topH)/2 - 12;
+  const sumAt = X => { let y=0, er=0, ei=0; for(let j=0;j<N;j++){ const ph = 2*Math.PI*ns[j]*X - om[j]*t; y += As[j]*Math.cos(ph); const pe = 2*Math.PI*(ns[j]-n0)*X - (om[j]-om[Math.floor((N-1)/2)] )*t; er += As[j]*Math.cos(pe); ei += As[j]*Math.sin(pe); } return [y/Asum, Math.hypot(er,ei)/Asum]; };
+  const Y = [], E = [];
+  for(let x=0;x<=w;x+=1.5){ const r = sumAt(x/w); Y.push([x,r[0]]); E.push([x,r[1]]); }
+  ctx.strokeStyle = COL.t2; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+  [1,-1].forEach(sg => { ctx.beginPath(); E.forEach(([x,e],i)=>{ const y = my - sg*amp*e; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); });
+  ctx.setLineDash([]);
+  ctx.strokeStyle = COL.t1; ctx.lineWidth = 2; ctx.beginPath(); Y.forEach(([x,y],i)=>{ const yy = my - amp*y; i?ctx.lineTo(x,yy):ctx.moveTo(x,yy); }); ctx.stroke();
+  // crest marker: follows one crest of the central wave at vp
+  const jc = Math.floor((N-1)/2);
+  const xCrest = ((vp*n0/ns[jc]) * t) % 1;
+  const ry = sumAt(xCrest)[0];
+  ctx.fillStyle = COL.t2; ctx.beginPath(); ctx.arc(xCrest*w, my - amp*ry, 5, 0, Math.PI*2); ctx.fill();
+  $('#pk-info').textContent = N===1 ? 'one pure wave: no pulse' : s===1 ? 'one pulse per screen' : `pulse repeats ${s}× per screen`;
+}
+
+/* ================= Wavelets ================= */
+const wv = { s:'seq', cyc:6 };
+const FS = 512;
+function wvSignal(){
+  const x = new Float64Array(FS);
+  for(let i=0;i<FS;i++){ const t = i/FS; let v=0;
+    if(wv.s==='seq') v = t<0.5 ? Math.sin(2*Math.PI*20*t) : Math.sin(2*Math.PI*120*t);
+    else if(wv.s==='both') v = 0.5*Math.sin(2*Math.PI*20*t) + 0.5*Math.sin(2*Math.PI*120*t);
+    else if(wv.s==='chirp') v = Math.sin(2*Math.PI*(8*t + 90*t*t));
+    else v = 0.7*Math.sin(2*Math.PI*40*t) + 2.2*Math.exp(-(((t-0.62)/0.003)**2));
+    x[i]=v; }
+  return x;
+}
+const cwtOff = document.createElement('canvas'); cwtOff.width = 256; cwtOff.height = 72;
+let wvData = null;
+function computeWV(){
+  const x = wvSignal();
+  const spec = new Float64Array(201);
+  for(let k=0;k<=200;k++){ let re=0, im=0; for(let n=0;n<FS;n++){ const a = 2*Math.PI*k*n/FS; re += x[n]*Math.cos(a); im -= x[n]*Math.sin(a); } spec[k] = Math.hypot(re,im); }
+  const R = cwtOff.height, Ccol = cwtOff.width, fmin = 5, fmax = 200;
+  const M = new Float64Array(R*Ccol); let mx = 0;
+  for(let r=0;r<R;r++){
+    const f = fmin*Math.pow(fmax/fmin, r/(R-1)); const st = wv.cyc/(2*Math.PI*f)*FS; const L = Math.ceil(3*st);
+    const gr = new Float64Array(2*L+1), gi = new Float64Array(2*L+1); let norm=0;
+    for(let k=-L;k<=L;k++){ const g = Math.exp(-(k*k)/(2*st*st)); gr[k+L] = g*Math.cos(2*Math.PI*f*k/FS); gi[k+L] = g*Math.sin(2*Math.PI*f*k/FS); norm += g; }
+    for(let c=0;c<Ccol;c++){
+      const n0 = c*2; let re=0, im=0; const k0 = Math.max(-L, -n0), k1 = Math.min(L, FS-1-n0);
+      for(let k=k0;k<=k1;k++){ const v = x[n0+k]; re += v*gr[k+L]; im += v*gi[k+L]; }
+      const m = 2*Math.hypot(re,im)/norm; M[(R-1-r)*Ccol+c] = m; if(m>mx) mx=m;
+    }
+  }
+  wvData = {x, spec, M, mx};
+  const oc = cwtOff.getContext('2d'), img = oc.createImageData(Ccol,R);
+  for(let i=0;i<R*Ccol;i++){ const c = seqColor(Math.pow(M[i]/mx, 0.8)); img.data[i*4]=c[0]; img.data[i*4+1]=c[1]; img.data[i*4+2]=c[2]; img.data[i*4+3]=255; }
+  oc.putImageData(img,0,0);
+}
+function updateWV(){ wv.cyc = +$('#wv-cyc').value; $('#wv-cyc-o').textContent = wv.cyc+' cycles'; dirty.wvall = true; }
+$('#wv-cyc').addEventListener('input', updateWV);
+$('#wv-s').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; wv.s = b.dataset.s; segSet($('#wv-s'),'s',wv.s); dirty.wvall = true; });
+function drawWV(){
+  if(dirty.wvall || !wvData) computeWV();
+  const font = '500 10px "IBM Plex Mono", monospace';
+  // signal
+  { const {ctx,w,h} = setup($('#wv-sig')); ctx.clearRect(0,0,w,h); const my = h/2, a = h*0.2;
+    ctx.strokeStyle = COL.grid; ctx.beginPath(); ctx.moveTo(0,my+.5); ctx.lineTo(w,my+.5); ctx.stroke();
+    ctx.strokeStyle = COL.t1; ctx.lineWidth=1.3; ctx.beginPath(); for(let i=0;i<FS;i++){ const x = i/(FS-1)*w, y = my - a*wvData.x[i]; i?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); }
+  // fft
+  { const {ctx,w,h} = setup($('#wv-fft')); ctx.clearRect(0,0,w,h); const pb = 18, mx = Math.max(...wvData.spec);
+    ctx.fillStyle = COL.t1; for(let k=1;k<=200;k++){ const x = 6 + (k/200)*(w-12), v = wvData.spec[k]/mx*(h-pb-10); ctx.fillRect(x-1, h-pb-v, 2, v); }
+    ctx.strokeStyle = COL.rule; ctx.beginPath(); ctx.moveTo(0,h-pb+.5); ctx.lineTo(w,h-pb+.5); ctx.stroke();
+    ctx.fillStyle = COL.ink2; ctx.font = font; ctx.textAlign='center'; [0,50,100,150,200].forEach(f => ctx.fillText(f+(f===200?' Hz':''), clamp(6+f/200*(w-12),12,w-22), h-5)); }
+  // wavelet shapes
+  { const {ctx,w,h} = setup($('#wv-shape')); ctx.clearRect(0,0,w,h);
+    [15,40,100].forEach((f,i) => { const y0 = h*(i+0.5)/3, a = h/7, st = wv.cyc/(2*Math.PI*f);
+      ctx.strokeStyle = [COL.t3, COL.t1, COL.t2][i]; ctx.lineWidth=1.4; ctx.beginPath();
+      for(let x=0;x<=w;x++){ const t = (x/w - 0.5); const y = y0 - a*Math.exp(-t*t/(2*st*st))*Math.cos(2*Math.PI*f*t); x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
+      ctx.fillStyle = COL.ink2; ctx.font = font; ctx.textAlign='left'; ctx.fillText(f+' Hz', 4, y0-a+4); }); }
+  // cwt
+  { const {ctx,w,h} = setup($('#wv-cwt')); ctx.clearRect(0,0,w,h); const pl = 44, pb = 18;
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(cwtOff, pl, 0, w-pl, h-pb);
+    ctx.fillStyle = COL.ink2; ctx.font = font; ctx.textAlign='right';
+    [10,20,50,100,200].forEach(f => { const r = Math.log(f/5)/Math.log(40); const y = (1-r)*(h-pb); ctx.fillText(f+' Hz', pl-5, clamp(y+3,10,h-pb)); ctx.fillRect(pl-3, Math.round(y), 3, 1); });
+    ctx.textAlign='center'; [0,0.25,0.5,0.75,1].forEach(t => ctx.fillText(t+' s', clamp(pl + t*(w-pl), pl+10, w-14), h-4)); }
+}
+
+/* ================= Live FDTD simulator (2D Maxwell, TMz) ================= */
+const PML = 24, IW = 320, IH = 200, NX = IW + 2*PML, NY = IH + 2*PML, NN = NX*NY, SC = 0.5;
+const Ez = new Float32Array(NN), Hx = new Float32Array(NN), Hy = new Float32Array(NN), Jz = new Float32Array(NN), I2 = new Float32Array(NN);
+const mat = new Uint8Array(NN), wp2 = new Float32Array(NN);
+const ca = new Float32Array(NN), cb = new Float32Array(NN), da = new Float32Array(NN), db = new Float32Array(NN), sponge = new Float32Array(NN);
+for(let j=0;j<NY;j++) for(let i=0;i<NX;i++){
+  const dx = Math.max(0, PML-i, i-(NX-1-PML)), dy = Math.max(0, PML-j, j-(NY-1-PML));
+  const d = Math.min(1, Math.hypot(dx,dy)/PML); sponge[j*NX+i] = 0.5*d*d*d;
+}
+const K = (ix,iy) => (Math.round(iy)+PML)*NX + Math.round(ix)+PML;
+const sim = { scene:'open', lam:20, dx:0.15, n:0, ants:[], line:null, probe:null, probeBuf:new Float32Array(360), probeI:0,
+  src:'cw', view:'field', elev:40, speed:3, tool:'ant', steer:20, plasma:false, coeffDirty:true, scale:0.05, pscale:0.002, drag:null, fixedGuide:null };
+const WP_MAX = 2*Math.PI/24, NU = 0.0015;
+const SCENES = {
+  open:{dx:0.15, lam:20, note:'An FM antenna sending 100 MHz. The ripples are the real electric field, 3 m from crest to crest. The wave weakens as it spreads out but never stops; the edges of the tank soak it up as if the air went on forever.'},
+  building:{dx:0.15, lam:20, note:'A metal building sits in the way. Behind it there is a shadow, but the wave bends around the corners and leaks in. That bending is diffraction, and it is why FM still works behind a hill. Try a higher frequency: the shadow gets sharper.'},
+  gap:{dx:0.15, lam:20, note:'A flat wave front hits a wall with one gap. On the other side it fans out. Raise the frequency and the beam coming through gets narrower; lower it and the gap acts almost like a new antenna.'},
+  walls:{dx:0.00625, lam:20, note:'Wi-Fi at 2.4 GHz hits two walls. Top: glass. The wave slows down inside it, the wavelength shrinks, and part of it reflects back. Bottom: concrete. It soaks up the energy, so much less comes out the far side.'},
+  guide:{dx:0.0015, lam:20, note:''},
+  two:{dx:0.15, lam:20, note:'Two antennas sending the same wave. Where crest meets crest the wave doubles; where crest meets trough it cancels. The calm stripes are dead zones. Switch to the signal strength map to see them sharply.'},
+  array:{dx:0.000535, lam:20, note:'Eight antennas half a wavelength apart, each sending the same 28 GHz wave with a tiny time offset. The waves only add up in one direction, forming a beam. 5G towers and phones steer beams like this with no moving parts. Move the beam slider.'},
+  room:{dx:0.0125, lam:10, note:'A 4 × 2.5 m room at 2.4 GHz. The waves bounce off every wall and pile up into strong and weak spots only centimetres apart. That is why a small step can change your Wi-Fi bars. Drag the signal meter around.'},
+  iono:{dx:1.25, lam:30, note:'Five antennas on the ground aim a beam at the sky. The top of the tank is ionised gas like the real ionosphere, with a plasma frequency of 10 MHz (heights squeezed to fit). At low frequency the beam curves back down and lands far away. Raise the frequency and it punches through to space, just like FM does. A flatter aim lets higher frequencies still bounce.'},
+};
+function lamFromSlider(v){ return 80*Math.pow(10/80, v/100); }
+function sliderFromLam(l){ return Math.round(Math.log(l/80)/Math.log(10/80)*100); }
+function paintRect(x0,y0,x1,y1,m){ for(let y=Math.round(y0); y<Math.round(y1); y++) for(let x=Math.round(x0); x<Math.round(x1); x++){ if(x<-PML||y<-PML||x>=IW+PML||y>=IH+PML) continue; const k = K(x,y); mat[k]=m; if(m===1) Ez[k]=0; } }
+function clearWaves(){ Ez.fill(0); Hx.fill(0); Hy.fill(0); Jz.fill(0); I2.fill(0); sim.ants.forEach(a => a.t0 = sim.n); if(sim.line) sim.line.t0 = sim.n; sim.probeBuf.fill(0); }
+function layoutArray(){
+  if(sim.scene==='array'){
+    const d = sim.lam/2, n = 8, yc = IH/2;
+    sim.ants = []; for(let k=0;k<n;k++){ const y = yc + (k-(n-1)/2)*d; sim.ants.push({x:60, y, ph: 2*Math.PI*(y-yc)*Math.sin(sim.steer*Math.PI/180)/sim.lam, t0:sim.n}); }
+  }
+  if(sim.scene==='iono'){
+    const el = sim.elev*Math.PI/180, d = sim.lam/2, n = 5, ux = Math.sin(el), uy = Math.cos(el), cx = 55, cy = 165;
+    sim.ants = []; for(let k=0;k<n;k++){ const o = (k-(n-1)/2)*d; sim.ants.push({x:cx+o*ux, y:cy+o*uy, ph:0, t0:sim.n}); }
+  }
+}
+function setScene(name){
+  sim.scene = name; const S = SCENES[name];
+  sim.dx = S.dx; sim.lam = S.lam; $('#sim-f').value = sliderFromLam(S.lam);
+  mat.fill(0); wp2.fill(0); sim.n = 0; sim.ants = []; sim.line = null; sim.probe = null; sim.plasma = false;
+  Ez.fill(0); Hx.fill(0); Hy.fill(0); Jz.fill(0); I2.fill(0); sim.probeBuf.fill(0);
+  const view = (name==='room'||name==='two') ? 'power' : 'field';
+  if(name==='two') sim.view = 'field'; else sim.view = view;
+  if(name==='open'){ sim.ants.push({x:110, y:100}); sim.probe = [230, 60]; }
+  if(name==='building'){ paintRect(150,68,190,132,1); sim.ants.push({x:55, y:100}); sim.probe = [250, 100]; }
+  if(name==='gap'){ paintRect(140,-PML,144,86,1); paintRect(140,114,144,IH+PML,1); sim.line = {x:12}; sim.probe = [230, 100]; }
+  if(name==='walls'){ paintRect(140,-PML,158,100,2); paintRect(140,100,158,IH+PML,3); sim.line = {x:12}; sim.probe = [250, 150]; }
+  if(name==='guide'){ paintRect(84,86,IW+PML,89,1); paintRect(84,111,IW+PML,114,1); paintRect(84,86,87,114,1); sim.ants.push({x:94, y:100}); sim.probe = [250, 100]; }
+  if(name==='two'){ sim.ants.push({x:80, y:70}, {x:80, y:130}); sim.probe = [240, 100]; }
+  if(name==='array'){ layoutArray(); sim.probe = null; }
+  if(name==='room'){
+    paintRect(20,15,300,19,3); paintRect(20,181,300,185,3); paintRect(20,15,24,185,3);
+    paintRect(296,15,300,120,3); paintRect(296,150,300,185,3);
+    paintRect(170,19,173,110,2);
+    sim.ants.push({x:70, y:60}); sim.probe = [235, 140];
+  }
+  if(name==='iono'){
+    sim.plasma = true;
+    for(let y=-PML; y<80; y++){ const h = clamp((80-y)/45, 0, 1); for(let x=-PML; x<IW+PML; x++) wp2[K(x,y)] = WP_MAX*WP_MAX*h; }
+    layoutArray(); sim.probe = [262, 172];
+  }
+  sim.ants.forEach(a => { a.t0 = 0; a.ph = a.ph||0; });
+  if(sim.line) sim.line.t0 = 0;
+  $('#sim-steer-box').hidden = !(name==='array'||name==='iono');
+  if(name==='iono'){ $('label[for=sim-steer]').textContent='Aim above horizon'; $('#sim-steer').min=15; $('#sim-steer').max=80; $('#sim-steer').value=sim.elev; $('#sim-steer-o').textContent=sim.elev+'°'; }
+  if(name==='array'){ $('label[for=sim-steer]').textContent='Beam direction'; $('#sim-steer').min=-60; $('#sim-steer').max=60; $('#sim-steer').value=sim.steer; $('#sim-steer-o').textContent=(sim.steer>0?'+':'')+sim.steer+'°'; }
+  segSet($('#sim-scene'),'s',name); segSet($('#sim-view'),'v',sim.view);
+  sim.coeffDirty = true; updateSimReadouts();
+}
+function rebuildCoeffs(){
+  for(let k=0;k<NN;k++){
+    const m = mat[k], s = sponge[k];
+    if(m===1){ ca[k]=0; cb[k]=0; }
+    else { const eps = m===2?4 : m===3?5 : 1; const l = s + (m===3?0.02:0); ca[k]=(1-l)/(1+l); cb[k]=SC/eps/(1+l); }
+    da[k]=(1-s)/(1+s); db[k]=SC/(1+s);
+  }
+  sim.coeffDirty = false;
+}
+function srcVal(n, ph){
+  const w = 2*Math.PI*SC/sim.lam, period = sim.lam/SC;
+  if(n < 0) return 0;
+  if(sim.src==='cw'){ const r = Math.min(1, n/(2*period)); return r*Math.sin(w*n + (ph||0)); }
+  const tw = period*1.3, n0 = 3*tw; return Math.exp(-(((n-n0)/tw)**2))*Math.sin(w*(n-n0) + (ph||0));
+}
+function simStep(){
+  const nx = NX;
+  for(let j=0;j<NY-1;j++){ const r=j*nx; for(let i=0;i<nx-1;i++){ const k=r+i, e=Ez[k]; Hx[k] = da[k]*Hx[k] - db[k]*(Ez[k+nx]-e); Hy[k] = da[k]*Hy[k] + db[k]*(Ez[k+1]-e); } }
+  if(sim.plasma){ for(let k=0;k<NN;k++){ const p = wp2[k]; if(p>0) Jz[k] += SC*(p*Ez[k] - NU*Jz[k]); } }
+  for(let j=1;j<NY;j++){ const r=j*nx; for(let i=1;i<nx;i++){ const k=r+i; const e = ca[k]*Ez[k] + cb[k]*((Hy[k]-Hy[k-1]) - (Hx[k]-Hx[k-nx]) - Jz[k]); Ez[k]=e; I2[k] = I2[k]*0.994 + e*e*0.006; } }
+  for(const a of sim.ants){ const k = K(a.x,a.y); if(mat[k]!==1) Ez[k] += 0.8*srcVal(sim.n - a.t0, a.ph); }
+  if(sim.line){ const v = 0.25*srcVal(sim.n - sim.line.t0, 0), x = Math.round(sim.line.x)+PML; for(let j=PML-6;j<NY-PML+6;j++){ const k = j*nx+x; if(mat[k]!==1) Ez[k] += v; } }
+  if(sim.probe){ sim.probeBuf[sim.probeI] = Ez[K(sim.probe[0], sim.probe[1])]; sim.probeI = (sim.probeI+1) % sim.probeBuf.length; }
+  sim.n++;
+  if(sim.src==='pulse'){ const t0 = sim.ants.length ? sim.ants[0].t0 : sim.line ? sim.line.t0 : sim.n; if(sim.n - t0 > 1500) fireAll(); }
+}
+function realF(){ return C0/(sim.lam*sim.dx); }
+function updateSimReadouts(){
+  const f = realF();
+  $('#sim-f-o').textContent = fmtFreq(f);
+  $('#sim-rf').textContent = fmtFreq(f);
+  $('#sim-rl').textContent = fmtLen(C0/f);
+  $('#sim-dx').textContent = fmtLen(sim.dx);
+  $('#sim-scale').textContent = `tank ${fmtLen(IW*sim.dx)} × ${fmtLen(IH*sim.dx)} · top view`;
+  let note = SCENES[sim.scene].note;
+  if(sim.scene==='guide'){ const w = 22*sim.dx, fc = C0/(2*w); note = `Two metal walls ${fmtLen(w)} apart, like a radar waveguide. The wave fits between them and races down the pipe. The cutoff here is ${fmtFreq(fc)}: lower the frequency below it and the wave can no longer fit, so it dies out right at the entrance. ` + (f < fc ? '<b>Right now you are below cutoff.</b>' : '<b>Right now it travels.</b>'); }
+  if(sim.scene==='iono'){ const muf = 10e6/Math.sin(sim.elev*Math.PI/180); note += f < muf ? ` <b>Now: ${fmtFreq(f)} is below the ${fmtFreq(muf)} limit for this aim, so it bounces.</b>` : ` <b>Now: ${fmtFreq(f)} is above the ${fmtFreq(muf)} limit for this aim, so it escapes.</b>`; }
+  $('#sim-note').innerHTML = note;
+}
+function updateSimTime(){ const t = sim.n*SC*sim.dx/C0; $('#sim-rt').textContent = fmtTime(t).replace(' µs',' µs').replace(/^0 /,'0 '); $('#sim-rd').textContent = fmtLen(sim.n*SC*sim.dx); }
+function fmtTimeFine(s){ if(s<1e-9) return sig(s*1e12,3)+' ps'; if(s<1e-6) return sig(s*1e9,3)+' ns'; return fmtTime(s); }
+$('#sim-f').addEventListener('input', e => { sim.lam = lamFromSlider(+e.target.value); layoutArray(); updateSimReadouts(); });
+$('#sim-steer').addEventListener('input', e => { const v = +e.target.value; if(sim.scene==='iono'){ sim.elev = v; $('#sim-steer-o').textContent = v+'°'; } else { sim.steer = v; $('#sim-steer-o').textContent = (v>0?'+':'')+v+'°'; } layoutArray(); sim.ants.forEach(a=>a.t0 = 0); updateSimReadouts(); });
+$('#sim-speed').addEventListener('input', e => { sim.speed = +e.target.value; $('#sim-speed-o').textContent = sim.speed+' steps / frame'; });
+$('#sim-scene').addEventListener('click', e => { const b = e.target.closest('button'); if(b) setScene(b.dataset.s); });
+$('#sim-src').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; sim.src = b.dataset.v; segSet($('#sim-src'),'v',sim.src); fireAll(); });
+$('#sim-view').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; sim.view = b.dataset.v; segSet($('#sim-view'),'v',sim.view); });
+$('#sim-tool').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; sim.tool = b.dataset.t; segSet($('#sim-tool'),'t',sim.tool);
+  $('#sim-hint').textContent = {ant:'click to add an antenna, drag one to move it', metal:'drag to draw metal', glass:'drag to draw glass', conc:'drag to draw concrete', probe:'click to place the signal meter', erase:'drag to erase walls and antennas'}[sim.tool]; });
+function fireAll(){ sim.ants.forEach(a => a.t0 = sim.n); if(sim.line) sim.line.t0 = sim.n; }
+$('#sim-fire').addEventListener('click', () => { if(sim.src!=='pulse'){ sim.src='pulse'; segSet($('#sim-src'),'v','pulse'); } fireAll(); });
+$('#sim-reset').addEventListener('click', clearWaves);
+$('#sim-clear').addEventListener('click', () => setScene(sim.scene));
+const simC = $('#sim-c');
+function simPos(e){ const r = simC.getBoundingClientRect(); return [clamp((e.clientX-r.left)/r.width*IW, 0, IW-1), clamp((e.clientY-r.top)/r.height*IH, 0, IH-1)]; }
+function simApply(p, first){
+  const t = sim.tool;
+  if(t==='ant'){
+    if(first){ let best=-1, bd=8; sim.ants.forEach((a,i)=>{ const d = Math.hypot(a.x-p[0],a.y-p[1]); if(d<bd){bd=d;best=i;} });
+      if(best<0){ if(sim.ants.length>=16) sim.ants.shift(); sim.ants.push({x:p[0], y:p[1], t0:sim.n, ph:0}); best = sim.ants.length-1; }
+      sim.drag = best; }
+    else if(sim.drag!=null && sim.ants[sim.drag]){ sim.ants[sim.drag].x = p[0]; sim.ants[sim.drag].y = p[1]; }
+    return;
+  }
+  if(t==='probe'){ sim.probe = [p[0],p[1]]; return; }
+  const r = t==='erase' ? 6 : 3, m = {metal:1, glass:2, conc:3, erase:0}[t];
+  for(let y=-r;y<=r;y++) for(let x=-r;x<=r;x++){ if(x*x+y*y>r*r) continue; const X = p[0]+x, Y = p[1]+y; if(X<0||Y<0||X>=IW||Y>=IH) continue; const k = K(X,Y); mat[k]=m; if(m===1) Ez[k]=0; if(t==='erase') wp2[k]=0; }
+  if(t==='erase') sim.ants = sim.ants.filter(a => Math.hypot(a.x-p[0],a.y-p[1]) > r);
+  sim.coeffDirty = true;
+}
+simC.addEventListener('pointerdown', e => { simC.setPointerCapture(e.pointerId); sim.down = true; simApply(simPos(e), true); });
+simC.addEventListener('pointermove', e => { if(sim.down) simApply(simPos(e), false); });
+simC.addEventListener('pointerup', () => { sim.down = false; sim.drag = null; });
+const simOff = document.createElement('canvas'); simOff.width = IW; simOff.height = IH;
+const simImg = simOff.getContext('2d').createImageData(IW, IH);
+let simFrameN = 0;
+function simAutoscale(){
+  const a = [], b = [];
+  for(let y=0;y<IH;y+=3) for(let x=0;x<IW;x+=3){ const k = K(x,y); if(mat[k]===1) continue; a.push(Math.abs(Ez[k])); b.push(I2[k]); }
+  a.sort((p,q)=>p-q); b.sort((p,q)=>p-q);
+  const pa = a[Math.floor(a.length*0.985)] || 0, pb = b[Math.floor(b.length*0.99)] || 0;
+  sim.scale = Math.max(1e-4, lerp(sim.scale, pa, 0.35)); sim.pscale = Math.max(1e-7, lerp(sim.pscale, pb, 0.35));
+}
+function drawSim(){
+  if(sim.coeffDirty) rebuildCoeffs();
+  if(state.running){ for(let s=0;s<sim.speed;s++) simStep(); }
+  if(simFrameN++ % 12 === 0) simAutoscale();
+  const d = simImg.data, R = COL.rgb, metal = R.ink2, glass = R.seq1, conc = R.ink, pl = R.t3, pan = R.panel;
+  const power = sim.view==='power', inv = 1/sim.scale, pref = sim.pscale;
+  for(let y=0;y<IH;y++){ const row = (y+PML)*NX + PML; for(let x=0;x<IW;x++){
+    const k = row + x, o = (y*IW+x)*4, m = mat[k]; let c;
+    if(m===1){ d[o]=metal[0]; d[o+1]=metal[1]; d[o+2]=metal[2]; d[o+3]=255; continue; }
+    if(power){ const v = I2[k]/pref; c = seqColor(v>0 ? (10*Math.log10(v)+36)/36 : 0); }
+    else { let v = Ez[k]*inv; v = v<0 ? -Math.pow(Math.min(1,-v),0.65) : Math.pow(Math.min(1,v),0.65); c = divColor(v); }
+    let r0=c[0], g0=c[1], b0=c[2];
+    if(m===2){ r0 = r0*0.62+glass[0]*0.38; g0 = g0*0.62+glass[1]*0.38; b0 = b0*0.62+glass[2]*0.38; }
+    else if(m===3){ r0 = r0*0.62+conc[0]*0.38; g0 = g0*0.62+conc[1]*0.38; b0 = b0*0.62+conc[2]*0.38; }
+    const p = wp2[k]; if(p>0){ const a = 0.4*p/(WP_MAX*WP_MAX); r0 = r0*(1-a)+pl[0]*a; g0 = g0*(1-a)+pl[1]*a; b0 = b0*(1-a)+pl[2]*a; }
+    d[o]=r0; d[o+1]=g0; d[o+2]=b0; d[o+3]=255;
+  } }
+  simOff.getContext('2d').putImageData(simImg,0,0);
+  const {ctx,w,h} = setup(simC); const sx = w/IW, sy = h/IH;
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(simOff, 0, 0, w, h);
+  // sources
+  if(sim.line){ ctx.strokeStyle = COL.accent; ctx.lineWidth = 2; ctx.setLineDash([6,5]); ctx.beginPath(); ctx.moveTo(sim.line.x*sx, 0); ctx.lineTo(sim.line.x*sx, h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = COL.ink; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left'; ctx.fillText('FLAT WAVE SOURCE', sim.line.x*sx+6, 14); }
+  sim.ants.forEach(a => { const X = a.x*sx, Y = a.y*sy; ctx.fillStyle = COL.accent; ctx.beginPath(); ctx.arc(X,Y,5,0,Math.PI*2); ctx.fill(); ctx.strokeStyle = COL.panel; ctx.lineWidth = 1.5; ctx.stroke(); });
+  if(sim.probe){ const X = sim.probe[0]*sx, Y = sim.probe[1]*sy; ctx.strokeStyle = COL.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X,Y,8,0,Math.PI*2); ctx.moveTo(X-13,Y); ctx.lineTo(X-4,Y); ctx.moveTo(X+4,Y); ctx.lineTo(X+13,Y); ctx.moveTo(X,Y-13); ctx.lineTo(X,Y-4); ctx.moveTo(X,Y+4); ctx.lineTo(X,Y+13); ctx.stroke(); }
+  // scale bar
+  const niceM = [0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100].find(v => v/sim.dx*sx > 60) || 100;
+  const bw = niceM/sim.dx*sx; ctx.fillStyle = rgba('panel',0.85); ctx.fillRect(w-bw-24, h-30, bw+16, 22);
+  ctx.fillStyle = COL.ink; ctx.fillRect(w-bw-16, h-14, bw, 3); ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='center'; ctx.fillText(fmtLen(niceM), w-bw/2-16, h-18);
+  if(sim.scene==='iono'){ ctx.fillStyle = COL.ink; ctx.textAlign='left'; ctx.fillText('IONOSPHERE (plasma)', 8, 16); ctx.fillText('GROUND LEVEL', 8, h-8); }
+  // probe trace
+  const pc = $('#sim-probe'); const P = setup(pc); const c2 = P.ctx; c2.clearRect(0,0,P.w,P.h);
+  c2.strokeStyle = COL.grid; c2.beginPath(); c2.moveTo(0,P.h/2+.5); c2.lineTo(P.w,P.h/2+.5); c2.stroke();
+  if(sim.probe){
+    const buf = sim.probeBuf, L = buf.length; let mx = 1e-6, ss = 0; for(let i=0;i<L;i++){ mx = Math.max(mx, Math.abs(buf[i])); ss += buf[i]*buf[i]; }
+    const sc = Math.max(mx, sim.scale*0.5);
+    c2.strokeStyle = COL.t1; c2.lineWidth = 1.5; c2.beginPath();
+    for(let i=0;i<L;i++){ const v = buf[(sim.probeI+i)%L]; const x = i/(L-1)*P.w, y = P.h/2 - v/sc*(P.h/2-6); i?c2.lineTo(x,y):c2.moveTo(x,y); } c2.stroke();
+    const rms = Math.sqrt(ss/L), ref = sim.scale;
+    $('#sim-probe-v').textContent = rms > 1e-6 ? `signal here: ${fmtNum(20*Math.log10(rms/ref),0)} dB vs a typical spot` : 'no signal here yet';
+  }
+  if(simFrameN % 6 === 0){ const t = sim.n*SC*sim.dx/C0; $('#sim-rt').textContent = fmtTimeFine(t); $('#sim-rd').textContent = fmtLen(sim.n*SC*sim.dx); }
+}
+
+/* ================= 3D E/B close-up ================= */
+const eb = { yaw:-0.55, pitch:0.32, pol:'lin', drag:null };
+const ebC = $('#eb');
+ebC.addEventListener('pointerdown', e => { eb.drag = [e.clientX, e.clientY, eb.yaw, eb.pitch]; ebC.setPointerCapture(e.pointerId); ebC.style.cursor='grabbing'; });
+ebC.addEventListener('pointermove', e => { if(!eb.drag) return; eb.yaw = eb.drag[2] + (e.clientX-eb.drag[0])*0.008; eb.pitch = clamp(eb.drag[3] + (e.clientY-eb.drag[1])*0.006, -1.2, 1.2); });
+ebC.addEventListener('pointerup', () => { eb.drag = null; ebC.style.cursor='grab'; });
+$('#eb-pol').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; eb.pol = b.dataset.v; segSet($('#eb-pol'),'v',eb.pol); });
+function drawEB(){
+  const {ctx,w,h} = setup(ebC); ctx.clearRect(0,0,w,h);
+  const S = Math.min(w*0.44, h*0.9), cx = w/2, cy = h/2, F = 3.2;
+  const cyw = Math.cos(eb.yaw), syw = Math.sin(eb.yaw), cp = Math.cos(eb.pitch), sp = Math.sin(eb.pitch);
+  const P = (x,y,z) => { const x1 = x*cyw + z*syw, z1 = -x*syw + z*cyw; const y1 = y*cp - z1*sp, z2 = y*sp + z1*cp; const s = F/(F + z2); return [cx + x1*S*s, cy - y1*S*s, z2]; };
+  const A = 0.42, kx = 2*Math.PI*1.5, ph = state.t*2.4;
+  const field = x => { const c = Math.cos(kx*x - ph), s = Math.sin(kx*x - ph);
+    return eb.pol==='lin' ? { E:[0, A*c, 0], B:[0, 0, A*c] } : { E:[0, A*c, A*s], B:[0, -A*s, A*c] }; };
+  // faint planes
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1;
+  for(let g=-1; g<=1.001; g+=0.25){ let a = P(g,-A,0), b = P(g,A,0); ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); a = P(g,0,-A); b = P(g,0,A); ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); }
+  const N = 64, xs = []; for(let i=0;i<=N;i++) xs.push(-1 + 2*i/N);
+  const draw = (key, col) => {
+    ctx.strokeStyle = col; ctx.globalAlpha = 0.45; ctx.lineWidth = 1.2;
+    xs.forEach((x,i) => { if(i%2) return; const f = field(x)[key]; const a = P(x,0,0), b = P(x, f[1], f[2]); ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); });
+    ctx.globalAlpha = 1; ctx.lineWidth = 2.5; ctx.beginPath();
+    xs.forEach((x,i) => { const f = field(x)[key]; const b = P(x, f[1], f[2]); i?ctx.lineTo(b[0],b[1]):ctx.moveTo(b[0],b[1]); }); ctx.stroke();
+  };
+  draw('B', COL.t1); draw('E', COL.t2);
+  // axis
+  const a0 = P(-1.1,0,0), a1 = P(1.18,0,0);
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a0[0],a0[1]); ctx.lineTo(a1[0],a1[1]); ctx.stroke();
+  const ang = Math.atan2(a1[1]-a0[1], a1[0]-a0[0]); ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.moveTo(a1[0],a1[1]); ctx.lineTo(a1[0]-10*Math.cos(ang-0.4), a1[1]-10*Math.sin(ang-0.4)); ctx.lineTo(a1[0]-10*Math.cos(ang+0.4), a1[1]-10*Math.sin(ang+0.4)); ctx.closePath(); ctx.fill();
+  ctx.font='600 12px "IBM Plex Sans", sans-serif'; ctx.textAlign='left'; ctx.fillText('travels at c = 299,792 km/s', Math.min(a1[0]-40, w-190), a1[1]+22);
+  const fe = field(-0.6).E, pe = P(-0.6, fe[1]+0.06*Math.sign(fe[1]||1), fe[2]); ctx.fillStyle = COL.t2; ctx.fillText('E', pe[0]+4, pe[1]);
+  const fb = field(-0.3).B, pb = P(-0.3, fb[1], fb[2]*1.15); ctx.fillStyle = COL.t1; ctx.fillText('B', pb[0]+4, pb[1]);
+}
+
+/* ================= Wi-Fi ================= */
+const WALLS = [
+  // exterior (brick) with windows (glass)
+  [0,0,2,0,'brick'],[2,0,5,0,'glass'],[5,0,18,0,'brick'],
+  [18,0,18,4,'brick'],[18,4,18,7,'glass'],[18,7,18,14,'brick'],
+  [18,14,15,14,'brick'],[15,14,12,14,'glass'],[12,14,0,14,'brick'],[0,14,0,0,'brick'],
+  // interior
+  [0,6,3,6,'drywall'],[4.2,6,7,6,'drywall'],
+  [7,0,7,6,'drywall'],
+  [7,5,9.5,5,'concrete'],[10.5,5,11,5,'concrete'],
+  [11,0,11,5.5,'brick'],[11,6.7,11,8,'brick'],
+  [11,8,14,8,'drywall'],[15,8,18,8,'drywall'],
+  [9,9,9,14,'drywall'],
+];
+const WALL_LOSS = { drywall:[3,4,5], brick:[6,10,12], concrete:[12,18,22], glass:[2,3,4] };
+const WALL_NAME = { drywall:'drywall', brick:'brick', concrete:'concrete', glass:'window' };
+const ROOMS = [[3.5,3,'Bedroom'],[9,2.5,'Bath'],[14.5,4,'Bedroom 2'],[4.5,10.5,'Living room'],[13.5,11.5,'Kitchen'],[21,7,'Garden'],[9,7,'Hall']];
+const BANDS = { '2.4':{i:0, mhz:2437}, '5':{i:1, mhz:5500}, '6':{i:2, mhz:6500} };
+const wf = { band:'2.4', P:20, router:[4,10.5], phone:[14.5,2], drag:null };
+function segX(ax,ay,bx,by, cx,cy,dx,dy){
+  const r1 = bx-ax, r2 = by-ay, s1 = dx-cx, s2 = dy-cy, den = r1*s2 - r2*s1; if(Math.abs(den)<1e-12) return false;
+  const t = ((cx-ax)*s2 - (cy-ay)*s1)/den, u = ((cx-ax)*r2 - (cy-ay)*r1)/den; return t>0 && t<1 && u>=0 && u<=1;
+}
+function rssiAt(x,y, list){
+  const [rx,ry] = wf.router, B = BANDS[wf.band];
+  const d = Math.max(0.5, Math.hypot(x-rx,y-ry));
+  let loss = 0;
+  for(const W of WALLS){ if(segX(rx,ry,x,y,W[0],W[1],W[2],W[3])){ loss += WALL_LOSS[W[4]][B.i]; if(list) list.push(W[4]); } }
+  const fspl = 20*Math.log10(d) + 20*Math.log10(B.mhz) - 27.55;
+  return { rssi: wf.P + 2 - fspl - loss, d, loss };
+}
+function quality(r){
+  if(r >= -50) return ['excellent','good',0.62];
+  if(r >= -67) return ['good for video','good',0.34];
+  if(r >= -75) return ['fair, slow','warn',0.45];
+  if(r >= -85) return ['poor, drops','bad',0.45];
+  return ['no signal','bad',0];
+}
+const wfOff = document.createElement('canvas'); wfOff.width = 120; wfOff.height = 70;
+function computeWF(){
+  const oc = wfOff.getContext('2d'), img = oc.createImageData(120,70);
+  for(let j=0;j<70;j++) for(let i=0;i<120;i++){
+    const x = (i+.5)*0.2, y = (j+.5)*0.2, r = rssiAt(x,y).rssi, q = quality(r), k=(j*120+i)*4;
+    const c = COL.rgb[q[1]]; img.data[k]=c[0]; img.data[k+1]=c[1]; img.data[k+2]=c[2]; img.data[k+3]=Math.round(q[2]*255);
+  }
+  oc.putImageData(img,0,0);
+}
+function updateWF(){
+  wf.P = +$('#wf-p').value; $('#wf-p-o').textContent = `${wf.P} dBm (${sig(Math.pow(10,wf.P/10),2)} mW)`;
+  const list = []; const r = rssiAt(wf.phone[0], wf.phone[1], list); const q = quality(r.rssi);
+  $('#wf-rssi').textContent = fmtNum(r.rssi,0)+' dBm';
+  $('#wf-q').innerHTML = `<span class="chip ${q[1]}">${q[0]}</span>`;
+  $('#wf-d').textContent = fmtNum(r.d,1)+' m';
+  const cnt = {}; list.forEach(m => cnt[m]=(cnt[m]||0)+1);
+  $('#wf-w').textContent = list.length ? Object.entries(cnt).map(([m,n])=>`${n} ${WALL_NAME[m]}`).join(', ')+` (−${r.loss} dB)` : 'none';
+  $('#wf-l').textContent = fmtLen(C0/(BANDS[wf.band].mhz*1e6));
+  dirty.wfmap = true; dirty.wfcompute = true;
+}
+$('#wf-p').addEventListener('input', updateWF);
+$('#wf-band').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; wf.band = b.dataset.b; segSet($('#wf-band'),'b',wf.band); updateWF(); });
+$('#wf-legend').innerHTML = [['good','.62','−50 dBm or better'],['good','.34','down to −67'],['warn','.45','down to −75'],['bad','.45','down to −85']].map(([c,a,t]) => `<span><i style="background:var(--${c}); opacity:${a}; height:10px"></i>${t}</span>`).join('') + '<span>blank: no signal</span>';
+const wfMap = $('#wf-map');
+function wfPos(e){ const r = wfMap.getBoundingClientRect(); return [clamp((e.clientX-r.left)/r.width*24, 0.2, 23.8), clamp((e.clientY-r.top)/r.height*14, 0.2, 13.8)]; }
+wfMap.addEventListener('pointerdown', e => { const p = wfPos(e); const dr = Math.hypot(p[0]-wf.router[0],p[1]-wf.router[1]), dp = Math.hypot(p[0]-wf.phone[0],p[1]-wf.phone[1]);
+  wf.drag = dr < 1.2 && dr < dp ? 'router' : 'phone'; wf[wf.drag] = p; wfMap.setPointerCapture(e.pointerId); updateWF(); });
+wfMap.addEventListener('pointermove', e => { if(!wf.drag) return; wf[wf.drag] = wfPos(e); if(wf.drag==='router') updateWF(); else { updateWF(); dirty.wfcompute = false; } });
+wfMap.addEventListener('pointerup', () => wf.drag = null);
+function drawWF(){
+  if(dirty.wfcompute){ computeWF(); dirty.wfcompute = false; }
+  const {ctx,w,h} = setup(wfMap); const s = w/24;
+  ctx.fillStyle = COL.panel; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle = rgba('t3',0.07); ctx.fillRect(18*s,0,6*s,h);
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(wfOff,0,0,w,h);
+  WALLS.forEach(W => { ctx.beginPath(); ctx.moveTo(W[0]*s,W[1]*s); ctx.lineTo(W[2]*s,W[3]*s);
+    const m = W[4]; ctx.setLineDash(m==='glass'?[4,3]:[]); ctx.strokeStyle = m==='glass'?COL.t1: m==='drywall'?COL.ink2:COL.ink; ctx.lineWidth = m==='concrete'?6: m==='brick'?4: m==='drywall'?2:2.5; ctx.stroke(); });
+  ctx.setLineDash([]);
+  ctx.fillStyle = COL.ink2; ctx.font = `500 ${w<500?9:11}px "IBM Plex Mono", monospace`; ctx.textAlign='center';
+  ROOMS.forEach(([x,y,n]) => ctx.fillText(n.toUpperCase(), x*s, y*s));
+  // line router->phone
+  const [rx,ry] = wf.router, [px,py] = wf.phone;
+  ctx.strokeStyle = COL.ink; ctx.lineWidth=1.2; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(rx*s,ry*s); ctx.lineTo(px*s,py*s); ctx.stroke(); ctx.setLineDash([]);
+  // router
+  ctx.fillStyle = COL.accent; ctx.beginPath(); ctx.arc(rx*s, ry*s, 9, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = COL.accent; ctx.lineWidth = 2; const ph = (state.t*0.8)%1;
+  for(let k=0;k<3;k++){ const rr = 12 + ((k/3+ph)%1)*26; ctx.globalAlpha = 1-((k/3+ph)%1); ctx.beginPath(); ctx.arc(rx*s, ry*s, rr, 0, Math.PI*2); ctx.stroke(); }
+  ctx.globalAlpha = 1; ctx.fillStyle = COL.accentink || COL.panel; ctx.fillStyle = COL.panel; ctx.font='700 9px "IBM Plex Sans", sans-serif'; ctx.fillText('R', rx*s, ry*s+3);
+  // phone
+  ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px*s-6, py*s-10, 12, 20, 3) : ctx.rect(px*s-6, py*s-10, 12, 20); ctx.fill();
+  ctx.fillStyle = COL.panel; ctx.fillRect(px*s-4, py*s-7, 8, 12);
+  ctx.fillStyle = COL.ink; ctx.font='600 11px "IBM Plex Mono", monospace'; ctx.textAlign = px>20?'right':'left';
+  ctx.fillText(fmtNum(rssiAt(px,py).rssi,0)+' dBm', px*s + (px>20?-12:12), py*s+4);
+}
+function updateCH(){ $('#wf-c1-o').textContent = $('#wf-c1').value; $('#wf-c2-o').textContent = $('#wf-c2').value; dirty.wfch = true;
+  const a = +$('#wf-c1').value, b = +$('#wf-c2').value, df = Math.abs(a-b)*5, ov = Math.max(0, 22-df)/22;
+  $('#wf-ov').innerHTML = a===b ? '<span class="chip warn">same channel: you take turns</span>' : ov>0 ? `<span class="chip bad">${Math.round(ov*100)}% overlap: noisy</span>` : '<span class="chip good">no overlap</span>'; }
+['#wf-c1','#wf-c2'].forEach(s => $(s).addEventListener('input', updateCH));
+function drawCH(){
+  const {ctx,w,h} = setup($('#wf-ch')); ctx.clearRect(0,0,w,h);
+  const f0 = 2398, f1 = 2486, pb = 22, X = f => lerp(8, w-8, (f-f0)/(f1-f0));
+  const a = +$('#wf-c1').value, b = +$('#wf-c2').value;
+  const hump = (n, col, alpha, lw, fill) => { const c = 2412 + 5*(n-1); ctx.beginPath();
+    for(let f=c-11; f<=c+11; f+=0.5){ const u = (f-c)/11; const y = h-pb - (h-pb-18)*Math.cos(u*Math.PI/2); f===c-11?ctx.moveTo(X(f),y):ctx.lineTo(X(f),y); }
+    if(fill){ ctx.lineTo(X(c+11),h-pb); ctx.lineTo(X(c-11),h-pb); ctx.closePath(); ctx.fillStyle = rgba(col, alpha); ctx.fill(); }
+    else { ctx.strokeStyle = rgba(col, alpha); ctx.lineWidth = lw; ctx.stroke(); } };
+  for(let n=1;n<=13;n++) hump(n,'ink2', [1,6,11].includes(n)?0.55:0.22, 1, false);
+  hump(b,'t2',0.22,0,true); hump(b,'t2',1,2,false);
+  hump(a,'t1',0.22,0,true); hump(a,'t1',1,2,false);
+  ctx.strokeStyle = COL.rule; ctx.beginPath(); ctx.moveTo(0,h-pb+.5); ctx.lineTo(w,h-pb+.5); ctx.stroke();
+  ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='center';
+  for(let n=1;n<=13;n++){ ctx.fillStyle = [1,6,11].includes(n) ? COL.ink : COL.ink2; ctx.fillText(String(n), X(2412+5*(n-1)), h-8); }
+  ctx.fillStyle = COL.ink2; ctx.textAlign='left'; ctx.fillText('1, 6 and 11 never overlap', 10, 12);
+}
+
+/* ================= tabs, theme, loop ================= */
+const TABS = ['sim','fm','space','wg','pk','wifi'];
+function showTab(id){
+  if(!TABS.includes(id)) id = 'sim';
+  state.tab = id;
+  TABS.forEach(t => { $('#'+t).hidden = t!==id; $('#tab-'+t).setAttribute('aria-selected', String(t===id)); });
+  if(id==='space') trip.start = performance.now();
+  dirtyAll(); dirty.wfcompute = true;
+  try{ history.replaceState(null,'','#'+id); }catch(e){}
+}
+$$('nav.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.id.replace('tab-',''))));
+$('nav.tabs').addEventListener('keydown', e => { const i = TABS.indexOf(state.tab);
+  if(e.key==='ArrowRight'){ showTab(TABS[(i+1)%TABS.length]); $('#tab-'+state.tab).focus(); }
+  if(e.key==='ArrowLeft'){ showTab(TABS[(i+TABS.length-1)%TABS.length]); $('#tab-'+state.tab).focus(); } });
+$('#theme').addEventListener('click', () => {
+  const root = document.documentElement, cur = root.getAttribute('data-theme');
+  const sysDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = cur ? cur==='dark' : sysDark;
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark'); readColors(); dirty.wfcompute = true;
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { readColors(); dirty.wfcompute = true; });
+const motionBtn = $('#motion');
+function setMotion(on){ state.running = on; motionBtn.setAttribute('aria-pressed', String(!on)); motionBtn.textContent = on ? 'Pause motion' : 'Resume motion'; }
+motionBtn.addEventListener('click', () => setMotion(!state.running));
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) setMotion(false);
+new ResizeObserver(() => dirtyAll()).observe(document.body);
+
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  if(state.running) state.t += dt;
+  const moving = state.running;
+  if(moving || dirty.dial){ drawDial(); dirty.dial = false; }
+  const tab = state.tab;
+  if(tab==='sim'){ drawSim(); drawEB(); }
+  else if(tab==='fm'){ drawFMScope(); if(dirty.fmspec){ drawFMSpec(); dirty.fmspec=false; } }
+  else if(tab==='space'){ drawIon(); drawTrip(now); }
+  else if(tab==='wg'){ drawWG(); }
+  else if(tab==='pk'){ drawPK(); if(dirty.wvall){ drawWV(); dirty.wvall=false; } }
+  else if(tab==='wifi'){ drawWF(); if(dirty.wfch){ drawCH(); dirty.wfch=false; } }
+  requestAnimationFrame(frame);
+}
+function init(){
+  readColors();
+  setFc(98.1); updateFM(); setIonF(state.fc); updateTrip(); wgSync(); updatePK(); updateWV(); updateWF(); updateCH(); setScene('open');
+  showTab((location.hash||'').slice(1));
+  requestAnimationFrame(frame);
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => dirtyAll());
+init();
+</script>
+</body>
+</html>

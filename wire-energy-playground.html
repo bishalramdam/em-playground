@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wire Energy Playground</title>
+<meta name="description" content="Energy flows around the wire, not inside it. Explore the Poynting vector in real cables, 50 to 1,000 km power lines, and corona glow.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Wire Energy Playground">
+<meta property="og:description" content="Energy flows around the wire, not inside it. Explore the Poynting vector in real cables, 50 to 1,000 km power lines, and corona glow.">
+<meta property="og:url" content="https://bishalramdam.github.io/em-playground/wire-energy-playground.html">
+<meta property="og:image" content="https://bishalramdam.github.io/em-playground/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Wire Energy Playground">
+<meta name="twitter:description" content="Energy flows around the wire, not inside it. Explore the Poynting vector in real cables, 50 to 1,000 km power lines, and corona glow.">
+<meta name="twitter:image" content="https://bishalramdam.github.io/em-playground/og.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --paper:#EDF0F3; --panel:#F8FAFB; --ink:#13202E; --ink-2:#4B5967; --rule:#CAD2DA; --grid:#DDE3E8;
+  --accent:#C2410C; --accent-ink:#FFFFFF;
+  --t1:#1864AB; --t2:#C2410C; --t3:#2B8A3E;
+  --seq0:#F8FAFB; --seq1:#4DABF7; --seq2:#0B2E59;
+  --good:#2B8A3E; --warn:#E67700; --bad:#C92A2A;
+  --display:"Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D141B; --panel:#141D27; --ink:#E4EAF0; --ink-2:#93A1AF; --rule:#2B3744; --grid:#1D2833;
+    --accent:#FF8A4C; --accent-ink:#1A0E06;
+    --t1:#5AA9FF; --t2:#FF8A4C; --t3:#69DB7C;
+    --seq0:#141D27; --seq1:#1C7ED6; --seq2:#D0EBFF;
+    --good:#51CF66; --warn:#FCC419; --bad:#FF6B6B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D141B; --panel:#141D27; --ink:#E4EAF0; --ink-2:#93A1AF; --rule:#2B3744; --grid:#1D2833;
+  --accent:#FF8A4C; --accent-ink:#1A0E06;
+  --t1:#5AA9FF; --t2:#FF8A4C; --t3:#69DB7C;
+  --seq0:#141D27; --seq1:#1C7ED6; --seq2:#D0EBFF;
+  --good:#51CF66; --warn:#FCC419; --bad:#FF6B6B;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font:15px/1.55 var(--sans); padding-inline:16px; padding-block:0 48px}
+.wrap{max-width:1180px; margin:0 auto}
+h1,h2,h3{font-family:var(--display); font-weight:800; letter-spacing:.01em; line-height:1.02; text-wrap:balance; margin:0}
+h1{font-size:clamp(40px,7vw,76px); text-transform:uppercase}
+h2{font-size:clamp(28px,4vw,40px); text-transform:uppercase}
+h3{font-size:22px; text-transform:uppercase; letter-spacing:.03em}
+p{margin:0}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+.label{font:500 11px/1.2 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2)}
+a{color:var(--t1)}
+
+/* header */
+header.top{display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:18px; border-bottom:1px solid var(--rule)}
+.brand{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.brand b{font:800 22px/1 var(--display); letter-spacing:.06em; text-transform:uppercase}
+.tools{display:flex; gap:8px; flex-wrap:wrap}
+button, .btn{font:500 13px/1 var(--sans); color:var(--ink); background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:9px 12px; cursor:pointer}
+button:hover{border-color:var(--ink-2)}
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button[aria-pressed="true"], .seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+button.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+
+/* hero dial */
+.hero{display:grid; gap:20px; padding-block:28px 8px}
+.hero-intro{display:grid; grid-template-columns:1.2fr 1fr; gap:24px; align-items:end}
+.hero-intro p{max-width:58ch; color:var(--ink-2)}
+.dial-box{background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:14px 14px 10px}
+#dial{width:100%; height:190px; display:block; touch-action:none; cursor:ew-resize}
+.readouts{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden; margin-top:10px}
+.ro{background:var(--panel); padding:10px 12px; display:grid; gap:4px}
+.ro .v{font:500 20px/1.1 var(--mono); font-variant-numeric:tabular-nums}
+.ro .v small{font-size:12px; color:var(--ink-2)}
+
+/* tabs */
+nav.tabs{display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--rule); margin-top:28px; position:sticky; top:0; background:var(--paper); z-index:5; padding-top:6px}
+nav.tabs button{border:0; border-bottom:3px solid transparent; border-radius:0; background:transparent; padding:12px 14px; white-space:nowrap; font:600 14px/1 var(--sans); color:var(--ink-2)}
+nav.tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+section.exp{padding-block:26px 10px; display:grid; gap:22px}
+.exp-head{display:grid; gap:8px; max-width:75ch}
+.exp-head p{color:var(--ink-2)}
+.bench{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; align-items:start}
+.inst{background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:12px; display:grid; gap:10px; min-width:0}
+.inst canvas{width:100%; display:block; border-radius:6px}
+.inst-title{display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap}
+.side{display:grid; gap:14px}
+.ctrls{display:grid; gap:14px; background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:14px}
+.ctrl{display:grid; gap:6px}
+.ctrl .row{display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.ctrl output{font:500 13px/1 var(--mono); font-variant-numeric:tabular-nums}
+input[type=range]{width:100%; accent-color:var(--accent)}
+.seg{display:flex; flex-wrap:wrap; gap:6px}
+.seg button{padding:7px 10px; font-size:12.5px}
+.check{display:flex; gap:8px; align-items:center; font-size:14px}
+.check input{accent-color:var(--accent); width:16px; height:16px}
+.stats{display:grid; gap:0; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--panel)}
+.stat{display:flex; justify-content:space-between; gap:10px; padding:9px 12px; border-top:1px solid var(--rule); align-items:baseline}
+.stat:first-child{border-top:0}
+.stat span:first-child{color:var(--ink-2); font-size:13px}
+.stat span:last-child{font:500 14px/1.2 var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+.chip{display:inline-block; font:600 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; padding:5px 8px; border-radius:999px; border:1px solid currentColor}
+.chip.good{color:var(--good)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)}
+.notes{display:grid; gap:10px; font-size:14px}
+.notes h3{font-size:18px}
+.notes ul{margin:0; padding-left:18px; display:grid; gap:6px}
+.notes .try{border-left:3px solid var(--accent); padding-left:12px}
+.eq{font:500 13px/1.5 var(--mono); background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:8px 10px; overflow-x:auto; white-space:nowrap}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
+.legend i{display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:6px; border-radius:2px}
+.split{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.table-wrap{overflow-x:auto}
+table.modes{border-collapse:collapse; width:100%; font-size:13px}
+table.modes th, table.modes td{padding:7px 8px; border-top:1px solid var(--rule); text-align:left}
+table.modes th{font:500 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); border-top:0}
+table.modes td.mono{white-space:nowrap}
+.foot{margin-top:40px; padding-top:16px; border-top:1px solid var(--rule); color:var(--ink-2); font-size:13px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+[hidden]{display:none!important}
+
+@media (max-width:900px){
+  .bench{grid-template-columns:1fr}
+  .hero-intro{grid-template-columns:1fr}
+  .readouts{grid-template-columns:repeat(2,1fr)}
+  .readouts .ro:last-child{grid-column:1 / -1}
+}
+@media (max-width:520px){
+  .split{grid-template-columns:1fr}
+  .ro .v{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brand"><b>Wire Energy Playground</b><span class="label">4 playgrounds · from a torch bulb to 765 kV</span></div>
+  <div class="tools">
+    <a class="btn" href="radio-wave-bench.html" style="text-decoration:none">Radio Wave Bench</a>
+    <button id="motion" aria-pressed="false" title="Pause or resume all animation">Pause motion</button>
+    <button id="theme" title="Switch light / dark">Light / dark</button>
+  </div>
+</header>
+
+<section class="hero" aria-label="Introduction">
+  <div class="hero-intro">
+    <h1>The energy travels around the wire, not inside it.</h1>
+    <p>Electrons in copper drift slower than a snail. The energy that lights your room moves at nearly the speed of light, carried by electric and magnetic fields in the space around the conductors. Every playground here computes those fields from the charges and currents and shows where the energy actually goes.</p>
+  </div>
+  <div class="readouts" style="grid-template-columns:repeat(4,1fr)">
+    <div class="ro"><span class="label">Electrons in a lamp cord</span><span class="v">~0.1 <small>mm/s</small></span></div>
+    <div class="ro"><span class="label">Energy along a power line</span><span class="v">~295,000 <small>km/s</small></span></div>
+    <div class="ro"><span class="label">Energy direction</span><span class="v">S = E × B <small>/ μ₀</small></span></div>
+    <div class="ro"><span class="label">Inside the copper</span><span class="v">almost 0 <small>W/m²</small></span></div>
+  </div>
+</section>
+
+<nav class="tabs" role="tablist" aria-label="Playgrounds">
+  <button role="tab" id="tab-pw" aria-controls="pw" aria-selected="true">1 · Energy in a circuit</button>
+  <button role="tab" id="tab-cx" aria-controls="cx" aria-selected="false">2 · Real cables, cut open</button>
+  <button role="tab" id="tab-ln" aria-controls="ln" aria-selected="false">3 · Lines 50 to 1,000 km</button>
+  <button role="tab" id="tab-co" aria-controls="co" aria-selected="false">4 · Corona challenge</button>
+</nav>
+
+<!-- ============ 1 CIRCUIT ============ -->
+<section class="exp" id="pw" role="tabpanel" aria-labelledby="tab-pw">
+  <div class="exp-head">
+    <span class="label">Playground 1 · Poynting vector · inspired by <a href="https://youtu.be/bHIhgxav9LY" target="_blank" rel="noopener">Veritasium, "The Big Misconception About Electricity"</a></span>
+    <h2>Follow the energy, not the electrons</h2>
+    <p>The page computes E from the charges sitting on the wires and B from the current, then draws S = E × B as orange streaks. Close the switch and watch the field front race out at light speed; energy then streams through the air into the bulb from the side.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Circuit, seen from above</h3><span class="label" id="pw-scale"></span></div>
+      <canvas id="pw-c" style="height:auto; aspect-ratio:2/1" aria-label="Circuit with animated energy flow computed from E cross B."></canvas>
+      <div class="seg" id="pw-show">
+        <button data-k="S" aria-pressed="true">Energy flow S</button>
+        <button data-k="E" aria-pressed="true">Electric field E</button>
+        <button data-k="B" aria-pressed="false">Magnetic field B</button>
+        <button data-k="H" aria-pressed="false">Energy-flow strength map</button>
+        <button data-k="e" aria-pressed="true">Electrons</button>
+      </div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>energy flow (Poynting vector)</span><span><i style="background:var(--t3)"></i>E, from + to −</span><span><i style="background:var(--t1)"></i>B: ⊙ out of screen, ⊗ into screen</span><span><i style="background:var(--ink)"></i>electrons</span></div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Circuit</span>
+          <div class="seg" id="pw-scene"><button data-s="dc" aria-pressed="true">Battery and bulb</button><button data-s="ac">230 V AC mains</button><button data-s="veri">1 light-second wires</button></div></div>
+        <button class="primary" id="pw-switch">Close the switch</button>
+        <div class="ctrl"><div class="row"><label for="pw-slow">Slow motion</label><output id="pw-slow-o"></output></div>
+          <input type="range" id="pw-slow" min="0" max="100" value="50"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Voltage</span><span id="pw-v"></span></div>
+        <div class="stat"><span>Current</span><span id="pw-i"></span></div>
+        <div class="stat"><span>Power to the bulb</span><span id="pw-p"></span></div>
+        <div class="stat"><span>Electron speed</span><span id="pw-vd"></span></div>
+        <div class="stat"><span id="pw-et-l">An electron needs</span><span id="pw-et"></span></div>
+        <div class="stat"><span>Energy arrives after</span><span id="pw-ta"></span></div>
+        <div class="stat"><span>Time since switch</span><span id="pw-t"></span></div>
+      </div>
+      <div class="notes"><p style="font-size:13px; color:var(--ink-2)" id="pw-note"></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2 CABLES ============ -->
+<section class="exp" id="cx" role="tabpanel" aria-labelledby="tab-cx" hidden>
+  <div class="exp-head">
+    <span class="label">Playground 2 · Cross-sections at 50 Hz (slowed down)</span>
+    <h2>Real cables, cut open</h2>
+    <p>You are looking along the cable toward the load. The colour is the energy crossing this slice every instant: blue flows toward the load, red flows back toward the source. Every cable design is a different way of shaping the fields that carry that energy.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3 id="cx-title">Cable cross-section</h3><span class="label" id="cx-scale"></span></div>
+      <canvas id="cx-c" style="height:auto; aspect-ratio:16/10; touch-action:none" aria-label="Cable cross-section with live electric, magnetic and energy-flow fields."></canvas>
+      <div class="seg" id="cx-show"><button data-k="S" aria-pressed="true">Energy flow map</button><button data-k="E" aria-pressed="true">E arrows</button><button data-k="B" aria-pressed="false">B arrows</button></div>
+      <div class="legend"><span><i style="background:var(--t1); height:10px"></i>energy toward the load</span><span><i style="background:var(--bad); height:10px"></i>energy flowing back (reactive)</span><span><i style="background:var(--t3)"></i>E field</span><span><i style="background:var(--ink-2)"></i>B field</span></div>
+      <div class="inst-title"><span class="label">Voltage, current and power over one cycle</span><span class="label" id="cx-wave-l"></span></div>
+      <canvas id="cx-w" style="height:120px"></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Cable</span>
+          <div class="seg" id="cx-type">
+            <button data-t="cord" aria-pressed="true">Lamp cord</button><button data-t="tp">Twisted pair</button><button data-t="coax">Coaxial</button>
+            <button data-t="twin">House wiring L-N-E</button><button data-t="c3">3-phase 4-core</button><button data-t="ohl">3-phase overhead line</button>
+          </div></div>
+        <div class="ctrl"><div class="row"><label for="cx-load">Load</label><output id="cx-load-o">60%</output></div>
+          <input type="range" id="cx-load" min="0" max="100" value="60"></div>
+        <div class="ctrl"><div class="row"><label for="cx-pf">Power factor</label><output id="cx-pf-o">1.00</output></div>
+          <input type="range" id="cx-pf" min="40" max="100" value="100"></div>
+        <label class="check" id="cx-fault-box" hidden><input type="checkbox" id="cx-fault"> Fault: live wire touches a metal case</label>
+        <div class="ctrl" id="cx-unbal-box" hidden><div class="row"><label for="cx-unbal">Unbalance (phase L1 load)</label><output id="cx-unbal-o">100%</output></div>
+          <input type="range" id="cx-unbal" min="0" max="200" value="100"></div>
+      </div>
+      <div class="stats" id="cx-stats"></div>
+      <div class="notes"><p style="font-size:13.5px" id="cx-note"></p></div>
+    </div>
+  </div>
+
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Why network cables are twisted</h3><span class="label">side view · drag the noisy motor cable</span></div>
+      <canvas id="tp-c" style="height:220px; touch-action:none" aria-label="Side view of a pair of wires near a noise source, showing induced noise per loop."></canvas>
+      <div class="legend"><span><i style="background:var(--t1); height:8px"></i>loop picks up noise one way</span><span><i style="background:var(--t2); height:8px"></i>loop picks it up the other way</span></div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><span class="label">Pair</span><div class="seg" id="tp-mode"><button data-v="tw" aria-pressed="true">Twisted</button><button data-v="st">Straight</button></div></div>
+        <div class="ctrl"><div class="row"><label for="tp-rate">Twists per metre</label><output id="tp-rate-o">40</output></div><input type="range" id="tp-rate" min="5" max="80" value="40"></div>
+      </div>
+      <div class="stats"><div class="stat"><span>Noise reaching the receiver</span><span id="tp-noise"></span></div><div class="stat"><span>Compared with a straight pair</span><span id="tp-rel"></span></div></div>
+      <div class="notes"><p style="font-size:13.5px">The noise field from the motor cable pushes a small voltage around every loop the two wires make. In a twisted pair each twist flips the loop, so neighbouring loops push in opposite directions and cancel. The receiver only listens to the difference between the two wires, so what cancels here never reaches it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 LONG LINES ============ -->
+<section class="exp" id="ln" role="tabpanel" aria-labelledby="tab-ln" hidden>
+  <div class="exp-head">
+    <span class="label">Playground 3 · Exact long-line equations (distributed R, L, C)</span>
+    <h2>Sending power across a country</h2>
+    <p>A power line is a giant transmission line. At 50 Hz one wavelength is about 5,900 km, so a 1,000 km line holds a sixth of a wave, and strange things appear: voltage that rises at the far end with no load, power that can't get through, energy sloshing back and forth. Pick a length and a voltage and push some megawatts.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>The line</h3><span class="label" id="ln-scale"></span></div>
+      <canvas id="ln-c" style="height:auto; aspect-ratio:3/1" aria-label="Side view of a transmission line with energy flow and voltage wave."></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>energy flow (density = megawatts)</span><span><i style="background:var(--t2)"></i>instantaneous voltage +</span><span><i style="background:var(--t1)"></i>instantaneous voltage −</span><span><i style="background:var(--bad)"></i>heat from losses</span></div>
+      <div class="inst-title"><h3>Along the line</h3><span class="label">sending end → receiving end</span></div>
+      <canvas id="ln-p" style="height:230px" aria-label="Voltage and current magnitude along the line."></canvas>
+      <div class="legend"><span><i style="background:var(--t1)"></i>voltage |V| (per unit)</span><span><i style="background:var(--t2)"></i>current |I| (per unit of rated)</span><span><i style="background:var(--good); height:8px; opacity:.4"></i>±5% voltage band</span><span><i style="background:var(--ink-2)"></i>voltage right now (50 Hz wave)</span></div>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><div class="row"><label for="ln-len">Line length</label><output id="ln-len-o">300 km</output></div>
+          <input type="range" id="ln-len" min="10" max="1000" value="300" step="5">
+          <div class="seg" id="ln-pre"><button data-l="75">50–100 km</button><button data-l="300" aria-pressed="true">100–500 km</button><button data-l="800">500–1,000 km</button></div></div>
+        <div class="ctrl"><span class="label">Voltage level</span>
+          <div class="seg" id="ln-kv"><button data-k="132">132 kV</button><button data-k="220">220 kV</button><button data-k="400" aria-pressed="true">400 kV</button><button data-k="765">765 kV</button></div></div>
+        <div class="ctrl"><div class="row"><label for="ln-pw">Power sent</label><output id="ln-pw-o"></output></div>
+          <input type="range" id="ln-pw" min="0" max="100" value="35"></div>
+        <div class="ctrl"><div class="row"><label for="ln-pf">Load power factor</label><output id="ln-pf-o">1.00</output></div>
+          <input type="range" id="ln-pf" min="80" max="120" value="100"></div>
+        <div class="ctrl"><div class="row"><label for="ln-sc">Series capacitor compensation</label><output id="ln-sc-o">0%</output></div>
+          <input type="range" id="ln-sc" min="0" max="60" value="0"></div>
+        <label class="check"><input type="checkbox" id="ln-shr"> Shunt reactors at the far end</label>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Line model needed</span><span id="ln-cls"></span></div>
+        <div class="stat"><span>Voltage at the far end</span><span id="ln-vr"></span></div>
+        <div class="stat"><span>Power delivered</span><span id="ln-pr"></span></div>
+        <div class="stat"><span>Lost as heat</span><span id="ln-loss"></span></div>
+        <div class="stat"><span>Power angle δ</span><span id="ln-d"></span></div>
+        <div class="stat"><span>Natural load (SIL)</span><span id="ln-sil"></span></div>
+        <div class="stat"><span>Line charging</span><span id="ln-qc"></span></div>
+        <div class="stat"><span>Share of a 50 Hz wavelength</span><span id="ln-wl"></span></div>
+        <div class="stat"><span>Energy travel time</span><span id="ln-tt"></span></div>
+        <div class="stat"><span>Practical limit (35°, 5% drop)</span><span id="ln-lim"></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes" style="max-width:80ch">
+    <div class="try"><h3>Try this</h3><ul>
+      <li><b>Ferranti effect:</b> 800 km at 400 kV, power at 0. The far end rises above the sending voltage, because the line's own capacitance keeps pushing charging current. Tick "shunt reactors" to tame it.</li>
+      <li><b>Surge impedance loading:</b> on 300 km, set the power close to the SIL value at power factor 1.00. The voltage profile goes almost flat: the line's magnetic and electric energy balance, so it neither needs nor makes reactive power.</li>
+      <li><b>Voltage collapse:</b> on a long line, keep raising the power. Past a point there is no solution: the line simply cannot deliver more. At 800 km even the SIL sits right at that edge, because nothing here props up the far-end voltage. Real grids add static var compensators and series capacitors; try the series compensation slider.</li>
+      <li>Go to 765 kV: four times the SIL of 400 kV. That is why long lines use very high voltages, and above roughly 600–800 km, HVDC is often cheaper.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ 4 CORONA ============ -->
+<section class="exp" id="co" role="tabpanel" aria-labelledby="tab-co" hidden>
+  <div class="exp-head">
+    <span class="label">Playground 4 · Challenge accepted · Peek's corona model</span>
+    <h2>When the air around a wire starts to glow</h2>
+    <p>Right at the surface of a high-voltage conductor, the electric field is strongest. If it passes about 30 kV per centimetre, free electrons in the air gain enough speed between collisions to knock more electrons loose. An avalanche starts, the air ionises, and a faint violet sheath appears: corona. It hisses, hums at 100 Hz, makes ozone and radio noise, and burns real power.</p>
+  </div>
+  <div class="bench">
+    <div class="inst">
+      <div class="inst-title"><h3>Close-up of one phase</h3><span class="label" id="co-scale"></span></div>
+      <canvas id="co-c" style="height:auto; aspect-ratio:16/10" aria-label="Close-up cross-section of a conductor bundle with electric field strength and corona glow."></canvas>
+      <div class="legend"><span><i style="background:var(--seq1); height:10px"></i>field strength (brighter = stronger)</span><span><i style="background:#B197FC; height:10px"></i>ionised air (corona)</span><span><i style="background:var(--accent)"></i>energy pulled out of the field into the glow</span></div>
+      <div class="inst-title"><h3>The line at night</h3><span class="label" id="co-night-l"></span></div>
+      <canvas id="co-n" style="height:auto; aspect-ratio:3/1" aria-label="Night view of a transmission line with corona glow."></canvas>
+    </div>
+    <div class="side">
+      <div class="ctrls">
+        <div class="ctrl"><div class="row"><label for="co-kv">Line voltage</label><output id="co-kv-o">400 kV</output></div>
+          <input type="range" id="co-kv" min="66" max="800" value="400" step="1">
+          <div class="seg" id="co-kvp"><button data-k="132">132</button><button data-k="220">220</button><button data-k="400" aria-pressed="true">400</button><button data-k="765">765</button></div></div>
+        <div class="ctrl"><span class="label">Conductors per phase (bundle)</span>
+          <div class="seg" id="co-n-b"><button data-n="1">1</button><button data-n="2" aria-pressed="true">2</button><button data-n="3">3</button><button data-n="4">4</button></div></div>
+        <div class="ctrl"><div class="row"><label for="co-d">Conductor diameter</label><output id="co-d-o">31.8 mm</output></div>
+          <input type="range" id="co-d" min="10" max="50" value="31.8" step="0.1"></div>
+        <div class="ctrl"><div class="row"><label for="co-alt">Altitude</label><output id="co-alt-o">0 m</output></div>
+          <input type="range" id="co-alt" min="0" max="5000" value="0" step="50">
+          <div class="seg" id="co-altp"><button data-a="0" aria-pressed="true">Sea level</button><button data-a="1400">Kathmandu 1,400 m</button><button data-a="4000">Mountain pass 4,000 m</button></div></div>
+        <div class="ctrl"><span class="label">Weather</span>
+          <div class="seg" id="co-w"><button data-w="fair" aria-pressed="true">Fair</button><button data-w="fog">Fog</button><button data-w="rain">Rain</button><button data-w="snow">Snow</button></div></div>
+        <button id="co-snd">Listen to the line</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Corona</span><span id="co-st"></span></div>
+        <div class="stat"><span>Field at the surface (max)</span><span id="co-gs"></span></div>
+        <div class="stat"><span>Air breaks down at</span><span id="co-gv"></span></div>
+        <div class="stat"><span>Safety margin</span><span id="co-m"></span></div>
+        <div class="stat"><span>Air density vs sea level</span><span id="co-dl"></span></div>
+        <div class="stat"><span>Glowing sheath thickness</span><span id="co-sh"></span></div>
+        <div class="stat"><span>Corona loss (3 phases)</span><span id="co-l"></span></div>
+        <div class="stat"><span id="co-lt-l">Over a 300 km line</span><span id="co-lt"></span></div>
+        <div class="stat"><span>Hum and crackle</span><span id="co-an"></span></div>
+        <div class="stat"><span>Radio interference</span><span id="co-ri"></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="notes">
+      <h3>The field picture of corona</h3>
+      <p>In a healthy line, the Poynting vector runs parallel to the conductors: all the energy slides along toward the city. Near the surface, the same electric field that carries the energy is squeezed tight, because the charge sits on a small, curved surface (field ≈ charge ÷ radius). Where that field exceeds the air's breakdown strength, the air stops being an insulator. Ions now move, a current flows through the air, and E · J becomes positive there: the field does work on the ions. So the Poynting vector bends sideways into the glowing sheath, and that energy turns into light, heat, sound, ozone and radio noise.</p>
+      <p style="color:var(--ink-2)">Engineers fight it with the same field logic: fatter conductors or bundles of 2 to 4 spread the charge over a bigger, less curved surface, so the surface field drops below breakdown.</p>
+    </div>
+    <div class="notes">
+      <div class="try"><h3>Try this</h3><ul>
+        <li>Set 400 kV with a single conductor: even in fair weather the air breaks down and the line hisses and loses tens of kW per km. Add rain and it glows. Switch to a bundle of 2 and it goes quiet. That is why every EHV line you see has bundled wires.</li>
+        <li>Press Rain. Water drops on the surface are tiny sharp points where the field spikes, so corona and losses jump.</li>
+        <li>Climb from sea level to Kathmandu, then to 4,000 m. Thinner air breaks down more easily, so mountain lines need bigger conductors.</li>
+        <li>Watch the close-up: the glow pulses twice per cycle, on the positive and negative peaks. That is where the 100 Hz hum comes from.</li>
+      </ul></div>
+      <p style="font-size:12.5px; color:var(--ink-2)">Model: surface field from the line-charge method with bundle factors; onset from Peek's visual corona formula; loss from Peek's loss formula, which is known to overestimate for modern lines. Real values vary with conductor age, dirt and humidity.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>Energy flux S = E × B / μ₀ in W/m². Fields computed from line charges and currents; power lines use the exact telegrapher equations.</span>
+  <a href="radio-wave-bench.html">Open the Radio Wave Bench</a>
+</footer>
+</div>
+<script>
+"use strict";
+/* ================= core ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const C0 = 299792458;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const lerp = (a,b,t) => a + (b-a)*t;
+let COL = {};
+function hexToRgb(h){ h = h.replace('#',''); if(h.length===3) h = h.split('').map(c=>c+c).join(''); const n = parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  ['paper','panel','ink','ink-2','rule','grid','accent','t1','t2','t3','seq0','seq1','seq2','good','warn','bad'].forEach(k => COL[k.replace('-','')] = cs.getPropertyValue('--'+k).trim());
+  COL.rgb = {}; for(const k in COL){ if(typeof COL[k]==='string' && COL[k][0]==='#') COL.rgb[k] = hexToRgb(COL[k]); }
+  dirtyAll();
+}
+function rgba(k,a){ const c = COL.rgb[k]; return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function seqColor(v){ // 0..1 -> rgb
+  v = clamp(v,0,1); const a = COL.rgb.seq0, b = COL.rgb.seq1, c = COL.rgb.seq2;
+  if(v<.5){ const t=v*2; return [lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)]; }
+  const t=(v-.5)*2; return [lerp(b[0],c[0],t),lerp(b[1],c[1],t),lerp(b[2],c[2],t)];
+}
+function divColor(v){ // -1..1 -> t1 .. panel .. t2
+  v = clamp(v,-1,1); const m = COL.rgb.panel, n = v<0 ? COL.rgb.t1 : COL.rgb.t2, t = Math.abs(v);
+  return [lerp(m[0],n[0],t),lerp(m[1],n[1],t),lerp(m[2],n[2],t)];
+}
+function setup(cv){
+  const dpr = Math.min(2, window.devicePixelRatio||1);
+  const r = cv.getBoundingClientRect(); const w = Math.max(20, r.width), h = Math.max(20, r.height);
+  const W = Math.round(w*dpr), H = Math.round(h*dpr);
+  if(cv.width!==W || cv.height!==H){ cv.width=W; cv.height=H; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx, w, h};
+}
+function fmtNum(v, d=0){ return v.toLocaleString('en-US',{minimumFractionDigits:d, maximumFractionDigits:d}); }
+function sig(v, n=3){ if(v===0) return '0'; const d = Math.max(0, n-1-Math.floor(Math.log10(Math.abs(v)))); return fmtNum(v, Math.min(d,6)); }
+function sci(v){ if(v===0) return '0'; const e = Math.floor(Math.log10(Math.abs(v))); const m = v/Math.pow(10,e);
+  const sup = String(e).split('').map(c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]).join('');
+  return `${m.toFixed(2)} × 10${sup}`; }
+function fmtLen(m){
+  if(m >= 1e9) return sig(m/1e9,3)+' million km';
+  if(m >= 1e3) return sig(m/1e3,3)+' km';
+  if(m >= 1) return sig(m,3)+' m';
+  if(m >= 1e-2) return sig(m*100,3)+' cm';
+  return sig(m*1000,3)+' mm';
+}
+function fmtFreq(hz){
+  if(hz>=1e9) return sig(hz/1e9,3)+' GHz';
+  if(hz>=1e6) return sig(hz/1e6,3)+' MHz';
+  if(hz>=1e3) return sig(hz/1e3,3)+' kHz';
+  return sig(hz,3)+' Hz';
+}
+function fmtTime(s){
+  if(s < 1e-3) return sig(s*1e6,3)+' µs';
+  if(s < 1) return sig(s*1000,3)+' ms';
+  if(s < 120) return sig(s,3)+' s';
+  if(s < 7200) return sig(s/60,3)+' min';
+  return sig(s/3600,3)+' hours';
+}
+function logMap(v, lo, hi){ return lo*Math.pow(hi/lo, v); }     // v 0..1
+function logInv(x, lo, hi){ return Math.log(x/lo)/Math.log(hi/lo); }
+function segSet(el, attr, val){ el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset[attr]===String(val)))); }
+
+const state = { fc: 98.1e6, tab: 'fm', t: 0, running: true };
+const dirty = {};
+function dirtyAll(){ if(typeof PW!=='undefined') PW.heatOK=false; ['cx','ln','co'].forEach(k=>dirty[k]=true); }
+
+
+/* ================= Poynting vector: energy around wires ================= */
+const PGX = 200, PGY = 100, PGN = PGX*PGY;
+const pwEx = new Float32Array(PGN), pwEy = new Float32Array(PGN), pwBz = new Float32Array(PGN);
+const PW = { scene:'dc', on:false, front:0, vis:60, show:{S:true,E:true,B:false,H:false,e:true}, parts:[], cdf:new Float32Array(PGN), cdfTot:0, frameN:0, els:[], ptr:0, src:[20,50], loadBox:[0,0,0,0], loadDist:0, unit:0.02, maxD:0 };
+const Q_E = 1.602e-19, N_CU = 8.5e28;
+const PW_INFO = {
+  dc:{ unit:0.02, note:'Close the switch and watch the field front leave the battery at the speed of light. Behind it, energy (orange streaks) streams out of the battery, travels through the space between and around the wires, and pours into the bulb from the side. The electrons (dots) barely move.' },
+  ac:{ unit:0.02, note:'Mains power reverses 50 times a second (slowed here to once every two seconds). Watch the E arrows flip and the B symbols swap, yet the orange energy flow never turns around: E and B flip together, so E × B always points from the generator to the bulb.' },
+  veri:{ unit:0.025, note:'Veritasium’s puzzle: the battery and bulb are 1 m apart, but each wire runs 300,000 km out before the loop closes. Does the bulb wait a whole second for current to come round? No. The field front crosses the 1 m gap directly, and a small current starts flowing through the bulb after about 3.3 ns. Full brightness only comes after the waves reach the far ends and bounce back, 2 s and more later.' },
+};
+// Veritasium numbers: two wires 1 m apart, 2 mm diameter, 12 V, 100 ohm bulb
+const VZ0 = 120*Math.acosh(1/0.002), VR = 100, VFRAC = VR/(VR + 2*VZ0);
+function pwSegments(){
+  const s = PW.scene;
+  if(s==='veri'){ const a = VFRAC;
+    PW.src = [100,70]; PW.loadBox = [93,24,107,36];
+    return [ {x0:96,y0:70,x1:104,y1:70,p0:-1,p1:1,I:1,k:'bat'},
+      {x0:104,y0:70,x1:320,y1:70,p0:1,p1:1,I:1,k:'w'}, {x0:320,y0:30,x1:104,y1:30,p0:a,p1:a,I:1,k:'w'},
+      {x0:104,y0:30,x1:96,y1:30,p0:a,p1:-a,I:1,k:'load'}, {x0:96,y0:30,x1:-120,y1:30,p0:-a,p1:-a,I:1,k:'w'},
+      {x0:-120,y0:70,x1:96,y1:70,p0:-1,p1:-1,I:1,k:'w'} ]; }
+  PW.src = [20,50]; PW.loadBox = [172,28,188,72];
+  return [ {x0:20,y0:70,x1:20,y1:30,p0:-1,p1:1,I:1,k:'bat'}, {x0:20,y0:30,x1:180,y1:30,p0:1,p1:1,I:1,k:'w'},
+    {x0:180,y0:30,x1:180,y1:70,p0:1,p1:-1,I:1,k:'load'}, {x0:180,y0:70,x1:20,y1:70,p0:-1,p1:-1,I:1,k:'w'} ];
+}
+function pwBuild(){
+  PW.segs = pwSegments(); PW.unit = PW_INFO[PW.scene].unit;
+  const els = [];
+  for(const g of PW.segs){ const L = Math.hypot(g.x1-g.x0, g.y1-g.y0), n = Math.max(1, Math.round(L)), ux = (g.x1-g.x0)/L, uy = (g.y1-g.y0)/L;
+    for(let k=0;k<n;k++){ const t = (k+.5)/n, x = lerp(g.x0,g.x1,t), y = lerp(g.y0,g.y1,t); if(x<-80 || x>280) continue;
+      els.push({x, y, q:lerp(g.p0,g.p1,t)*0.35*(L/n), dx:g.I*ux*(L/n), dy:g.I*uy*(L/n), d:Math.hypot(x-PW.src[0], y-PW.src[1])}); } }
+  els.sort((a,b)=>a.d-b.d); PW.els = els; PW.maxD = els.length ? els[els.length-1].d : 0;
+  const b = PW.loadBox; PW.loadDist = Math.hypot(clamp(PW.src[0],b[0],b[2])-PW.src[0], clamp(PW.src[1],b[1],b[3])-PW.src[1]);
+  pwResetFields();
+}
+function pwResetFields(){ pwEx.fill(0); pwEy.fill(0); pwBz.fill(0); PW.ptr = 0; PW.front = 0; PW.parts = []; PW.cdfTot = 0; }
+function pwAddUntil(front){
+  let added = 0;
+  while(PW.ptr < PW.els.length && PW.els[PW.ptr].d <= front && added < 40){
+    const e = PW.els[PW.ptr++]; added++;
+    for(let j=0;j<PGY;j++){ const ry = j+.5-e.y, ry2 = ry*ry + 1.5; const row = j*PGX;
+      for(let i=0;i<PGX;i++){ const rx = i+.5-e.x, r2 = rx*rx + ry2, inv = 1/(r2*Math.sqrt(r2)), k = row+i;
+        pwEx[k] += e.q*rx*inv; pwEy[k] += e.q*ry*inv; pwBz[k] += (e.dx*ry - e.dy*rx)*inv; } }
+  }
+  return added;
+}
+function pwAC(){ return PW.scene==='ac' ? Math.sin(2*Math.PI*0.5*state.t) : 1; }
+function pwMasked(i,j){ return Math.hypot(i+.5-PW.src[0], j+.5-PW.src[1]) <= PW.front; }
+function pwBuildCDF(){
+  const samples = []; for(let k=0;k<PGN;k+=7){ const i=k%PGX, j=(k/PGX)|0; if(!pwMasked(i,j)) continue; samples.push(Math.abs(pwBz[k])*Math.hypot(pwEx[k],pwEy[k])); }
+  samples.sort((a,b)=>a-b); const ref = samples[Math.floor(samples.length*0.9)] || 1e-9; PW.sref = ref;
+  let tot = 0; for(let k=0;k<PGN;k++){ const i=k%PGX, j=(k/PGX)|0; let w = 0;
+    if(pwMasked(i,j)){ const s = Math.abs(pwBz[k])*Math.hypot(pwEx[k],pwEy[k]); w = Math.min(1, Math.sqrt(s/ref)); }
+    tot += w; PW.cdf[k] = tot; }
+  PW.cdfTot = tot;
+}
+function pwSpawn(){
+  if(PW.cdfTot <= 0) return null;
+  const u = Math.random()*PW.cdfTot; let lo=0, hi=PGN-1; while(lo<hi){ const m=(lo+hi)>>1; if(PW.cdf[m] < u) lo=m+1; else hi=m; }
+  const x = (lo%PGX)+Math.random(), y = ((lo/PGX)|0)+Math.random(); return { x, y, life:0, max:1.4+Math.random()*1.8, tr:[[x,y]] };
+}
+function pwSetScene(s){ PW.scene = s; segSet($('#pw-scene'),'s',s); pwBuild(); pwSwitch(true); pwStats(); $('#pw-note').textContent = PW_INFO[s].note; }
+function pwSwitch(on){ PW.on = on; pwResetFields(); $('#pw-switch').textContent = on ? 'Open the switch' : 'Close the switch'; }
+function pwSlow(){ const v = +$('#pw-slow').value/100; PW.vis = 15*Math.pow(16, v); const f = C0/(PW.vis*PW.unit); $('#pw-slow-o').textContent = `light slowed ${sig(f/1e6,2)} million ×`; }
+function fmtLong(s){ if(s < 3600) return fmtTime(s); if(s < 86400*2) return sig(s/3600,2)+' hours'; if(s < 3.15e7*2) return sig(s/86400,2)+' days'; const y = s/3.156e7; return y>=1e6 ? sig(y/1e6,2)+' million years' : sig(y,2)+' years'; }
+function pwStats(){
+  const s = PW.scene;
+  if(s==='dc'){ const V=12, I=2, A=1.5e-6, vd = I/(N_CU*Q_E*A), L = 160*0.02;
+    $('#pw-v').textContent='12 V battery'; $('#pw-i').textContent='2 A'; $('#pw-p').textContent='24 W';
+    $('#pw-vd').textContent = sig(vd*1000,2)+' mm/s'; $('#pw-et-l').textContent = 'An electron needs, to cross 3.2 m'; $('#pw-et').textContent = fmtLong(L/vd);
+    $('#pw-ta').textContent = fmtTimeFine(PW.loadDist*0.02/C0); }
+  if(s==='ac'){ const I = 1000/230, A=1.5e-6, vdp = I*Math.SQRT2/(N_CU*Q_E*A), amp = vdp/(2*Math.PI*50);
+    $('#pw-v').textContent='230 V, 50 Hz'; $('#pw-i').textContent=sig(I,3)+' A'; $('#pw-p').textContent='1,000 W';
+    $('#pw-vd').textContent = 'peak '+sig(vdp*1000,2)+' mm/s'; $('#pw-et-l').textContent = 'Electrons just jiggle by'; $('#pw-et').textContent = '±'+sig(amp*1e6,2)+' µm';
+    $('#pw-ta').textContent = fmtTimeFine(PW.loadDist*0.02/C0); }
+  if(s==='veri'){ const I0 = 12/(VR+2*VZ0), A = Math.PI*1e-6, vd = I0/(N_CU*Q_E*A);
+    $('#pw-v').textContent='12 V battery'; $('#pw-i').textContent=`${sig(I0*1000,2)} mA at first (${sig(12/VR*1000,3)} mA later)`;
+    $('#pw-p').textContent = `${sig(I0*I0*VR*1000,2)} mW at first`;
+    $('#pw-vd').textContent = sig(vd*1e6,2)+' µm/s'; $('#pw-et-l').textContent = 'An electron needs, to go the long way'; $('#pw-et').textContent = fmtLong(6e8/vd);
+    $('#pw-ta').textContent = fmtTimeFine(1/C0)+' (not 1 s)'; }
+}
+$('#pw-scene').addEventListener('click', e => { const b = e.target.closest('button'); if(b) pwSetScene(b.dataset.s); });
+$('#pw-switch').addEventListener('click', () => pwSwitch(!PW.on));
+$('#pw-slow').addEventListener('input', pwSlow);
+$('#pw-show').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const k = b.dataset.k; PW.show[k] = !PW.show[k]; b.setAttribute('aria-pressed', String(PW.show[k])); });
+const pwHeat = document.createElement('canvas'); pwHeat.width = PGX; pwHeat.height = PGY;
+let pwLastT = 0;
+function drawPW(){
+  const dt = clamp(state.t - pwLastT, 0, 0.05); pwLastT = state.t;
+  if(PW.on){ PW.front += dt*PW.vis; pwAddUntil(PW.front); }
+  PW.frameN++;
+  if(PW.on && (PW.frameN % 8 === 0 || PW.cdfTot===0) && PW.front < 400) pwBuildCDF();
+  const {ctx,w,h} = setup($('#pw-c')); const s = w/PGX;
+  ctx.fillStyle = COL.panel; ctx.fillRect(0,0,w,h);
+  const ac = pwAC(), ac2 = ac*ac;
+  // heatmap
+  if(PW.show.H && PW.on){
+    if(PW.frameN % 6 === 0 || !PW.heatOK){ const oc = pwHeat.getContext('2d'), img = oc.createImageData(PGX,PGY), ref = PW.sref||1e-9;
+      for(let k=0;k<PGN;k++){ const i=k%PGX, j=(k/PGX)|0; const o=k*4; let c;
+        if(pwMasked(i,j)){ const v = Math.abs(pwBz[k])*Math.hypot(pwEx[k],pwEy[k])*ac2; c = seqColor(v>0 ? Math.log10(v/ref)/3 + 0.7 : 0); } else c = COL.rgb.panel;
+        img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=255; }
+      oc.putImageData(img,0,0); PW.heatOK = true; }
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(pwHeat,0,0,w,h);
+  }
+  // E arrows
+  if(PW.show.E && PW.on){
+    for(let j=5;j<PGY;j+=10) for(let i=5;i<PGX;i+=10){ if(!pwMasked(i,j)) continue; const k = j*PGX+i; let ex = pwEx[k]*ac, ey = pwEy[k]*ac; const m = Math.hypot(ex,ey); if(m < 1e-5) continue;
+      const a = clamp(0.18 + 0.2*Math.log10(m/0.002), 0.1, 0.6)*Math.min(1, Math.abs(ac)*1.5+0.1); ex/=m; ey/=m;
+      const cx = (i+.5)*s, cy = (j+.5)*s, L = 3.2*s; ctx.strokeStyle = rgba('t3', a); ctx.fillStyle = rgba('t3', a); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(cx-ex*L, cy-ey*L); ctx.lineTo(cx+ex*L, cy+ey*L); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+ex*L, cy+ey*L); ctx.lineTo(cx+ex*L*0.35 - ey*L*0.4, cy+ey*L*0.35 + ex*L*0.4); ctx.lineTo(cx+ex*L*0.35 + ey*L*0.4, cy+ey*L*0.35 - ex*L*0.4); ctx.closePath(); ctx.fill(); }
+  }
+  // B symbols (z into screen positive in y-down coords)
+  if(PW.show.B && PW.on){
+    for(let j=8;j<PGY;j+=8) for(let i=8;i<PGX;i+=8){ if(!pwMasked(i,j)) continue; const k = j*PGX+i; const b = pwBz[k]*ac; const m = Math.abs(b); if(m < 1e-4) continue;
+      const r = clamp(1.2 + 0.9*Math.log10(m/0.001), 0.6, 2.6)*s*0.8, cx = i*s, cy = j*s; ctx.strokeStyle = rgba('t1', 0.8); ctx.fillStyle = rgba('t1',0.8); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+      if(b > 0){ ctx.beginPath(); ctx.moveTo(cx-r*0.6,cy-r*0.6); ctx.lineTo(cx+r*0.6,cy+r*0.6); ctx.moveTo(cx+r*0.6,cy-r*0.6); ctx.lineTo(cx-r*0.6,cy+r*0.6); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.arc(cx,cy,Math.max(1,r*0.25),0,Math.PI*2); ctx.fill(); } }
+  }
+  // circuit
+  const lit = PW.on && PW.front >= PW.loadDist;
+  const X = x => x*s, Y = y => y*s;
+  ctx.lineCap = 'round';
+  for(const g of PW.segs){ if(g.k!=='w') continue; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(2.5, s*1.1); ctx.beginPath(); ctx.moveTo(X(g.x0),Y(g.y0)); ctx.lineTo(X(g.x1),Y(g.y1)); ctx.stroke(); }
+  // switch
+  const swx = PW.scene==='veri' ? [108,118,70] : [36,48,30];
+  ctx.strokeStyle = COL.panel; ctx.lineWidth = Math.max(4, s*1.6); ctx.beginPath(); ctx.moveTo(X(swx[0]),Y(swx[2])); ctx.lineTo(X(swx[1]),Y(swx[2])); ctx.stroke();
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(2.5, s*1.1); ctx.beginPath(); ctx.moveTo(X(swx[0]),Y(swx[2]));
+  if(PW.on) ctx.lineTo(X(swx[1]),Y(swx[2])); else ctx.lineTo(X(swx[1]-1.5),Y(swx[2]-6)); ctx.stroke();
+  ctx.fillStyle = COL.ink; [swx[0],swx[1]].forEach(x => { ctx.beginPath(); ctx.arc(X(x),Y(swx[2]),Math.max(2.5,s*0.9),0,Math.PI*2); ctx.fill(); });
+  ctx.font = `600 ${Math.max(10, s*3.6)}px "IBM Plex Sans", sans-serif`; ctx.textAlign='center'; ctx.fillStyle = COL.ink2;
+  ctx.fillText(PW.on ? 'switch closed' : 'switch open', X((swx[0]+swx[1])/2), Y(swx[2] + (PW.scene==='veri'? 8 : -5)));
+  // source & load
+  for(const g of PW.segs){
+    const mx = (g.x0+g.x1)/2, my = (g.y0+g.y1)/2, vert = Math.abs(g.x1-g.x0) < 1;
+    if(g.k==='bat'){
+      ctx.fillStyle = COL.panel; ctx.strokeStyle = COL.ink; ctx.lineWidth = 2;
+      const bw = vert ? 10 : 14, bh = vert ? 30 : 9;
+      if(PW.scene==='ac'){ ctx.beginPath(); ctx.arc(X(mx),Y(my),9*s,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.font=`500 ${14*s*0.5}px "IBM Plex Mono", monospace`; ctx.fillStyle=COL.ink; ctx.fillText('~', X(mx), Y(my)+s*2.5); ctx.font=`500 ${Math.max(9,s*3)}px "IBM Plex Mono", monospace`; ctx.fillText('230 V', X(mx+16), Y(my)+4); }
+      else { ctx.beginPath(); ctx.rect(X(mx-bw/2),Y(my-bh/2),bw*s,bh*s); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = COL.ink; ctx.font = `600 ${Math.max(9,s*3.2)}px "IBM Plex Mono", monospace`;
+        if(vert){ ctx.fillText('+', X(mx), Y(my-bh/2+5)); ctx.fillText('−', X(mx), Y(my+bh/2-2)); ctx.fillText('12 V', X(mx+13), Y(my)+4); }
+        else { ctx.fillText('−', X(mx-bw/2+3), Y(my)+4); ctx.fillText('+', X(mx+bw/2-3), Y(my)+4); ctx.fillText('battery 12 V', X(mx), Y(my+12)); } }
+    }
+    if(g.k==='load'){
+      const glow = lit ? (PW.scene==='veri' ? 0.35 : (PW.scene==='ac' ? 0.75 + 0.25*ac2 : 1)) : 0;
+      if(glow>0){ const gr = ctx.createRadialGradient(X(mx),Y(my),0,X(mx),Y(my),26*s); gr.addColorStop(0, `rgba(255,196,64,${0.75*glow})`); gr.addColorStop(1,'rgba(255,196,64,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(X(mx),Y(my),26*s,0,Math.PI*2); ctx.fill(); }
+      ctx.fillStyle = glow>0 ? `rgba(255,214,110,${0.5+0.5*glow})` : COL.panel; ctx.strokeStyle = COL.ink; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(X(mx),Y(my),7*s,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); for(let q=0;q<=8;q++){ const t=q/8, zz = (q%2?2:-2); const fx = vert ? mx + zz : mx-4+8*t, fy = vert ? my-4+8*t : my + zz; q?ctx.lineTo(X(fx),Y(fy)):ctx.moveTo(X(fx),Y(fy)); } ctx.stroke();
+      ctx.fillStyle = COL.ink; ctx.font = `600 ${Math.max(9,s*3.2)}px "IBM Plex Sans", sans-serif`;
+      const lbl = PW.scene==='veri' ? (lit ? 'bulb glows faintly' : 'bulb, 1 m from battery') : (lit ? 'bulb lit' : 'bulb');
+      ctx.fillText(lbl, vert ? X(mx-17) : X(mx), vert ? Y(my)+4 : Y(my-10)); if(vert) ctx.textAlign='center';
+    }
+  }
+  if(PW.scene==='veri'){ ctx.fillStyle = COL.ink2; ctx.font = `500 ${Math.max(9,s*2.8)}px "IBM Plex Mono", monospace`; ctx.textAlign='left'; ctx.fillText('← 300,000 km', 4, Y(26)); ctx.textAlign='right'; ctx.fillText('300,000 km →', w-4, Y(26));
+    ctx.textAlign='center'; ctx.strokeStyle = COL.ink2; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(X(128),Y(33)); ctx.lineTo(X(128),Y(67)); ctx.stroke(); ctx.setLineDash([]); ctx.fillText('1 m', X(134), Y(51)); }
+  // electrons
+  if(PW.show.e){
+    ctx.fillStyle = COL.panel;
+    for(const g of PW.segs){ if(g.k!=='w') continue; const L = Math.hypot(g.x1-g.x0,g.y1-g.y0), ux=(g.x1-g.x0)/L, uy=(g.y1-g.y0)/L;
+      const drift = PW.on ? (PW.scene==='ac' ? -1.2*Math.cos(2*Math.PI*0.5*state.t) : -state.t*0.35) : 0;
+      for(let d=0; d<L; d+=6){ let p = d + (PW.scene==='ac' ? drift : ((drift % 6)+6)%6); const x = g.x0+ux*p, y = g.y0+uy*p; if(x<0||x>PGX) continue;
+        ctx.beginPath(); ctx.arc(X(x),Y(y),Math.max(1.2,s*0.35),0,Math.PI*2); ctx.fill(); } }
+  }
+  // energy particles
+  if(PW.show.S && PW.on){
+    const target = 320;
+    while(PW.parts.length < target){ const p = pwSpawn(); if(!p) break; PW.parts.push(p); }
+    const spd = PW.vis * (PW.scene==='ac' ? 0.15 + 0.85*ac2 : 1), lb = PW.loadBox;
+    ctx.lineWidth = Math.max(1.3, s*0.45);
+    for(let n=0;n<PW.parts.length;n++){
+      let p = PW.parts[n]; const i = p.x|0, j = p.y|0;
+      if(i<0||j<0||i>=PGX||j>=PGY || !pwMasked(i,j)){ PW.parts[n] = pwSpawn() || p; continue; }
+      const k = j*PGX+i, sx = pwEy[k]*pwBz[k], sy = -pwEx[k]*pwBz[k], m = Math.hypot(sx,sy);
+      if(m < 1e-9){ PW.parts[n] = pwSpawn() || p; continue; }
+      const ux = sx/m, uy = sy/m;
+      p.x += ux*spd*dt; p.y += uy*spd*dt; p.life += dt; p.tr.push([p.x,p.y]); if(p.tr.length > 14) p.tr.shift();
+      if(p.life > p.max || (p.x>lb[0] && p.x<lb[2] && p.y>lb[1] && p.y<lb[3])){ PW.parts[n] = pwSpawn() || p; continue; }
+      const a = Math.min(1, p.life*4, (p.max-p.life)*3) * (PW.scene==='ac' ? 0.35+0.65*ac2 : 1);
+      const tr = p.tr; if(tr.length < 2) continue;
+      for(let q=1;q<tr.length;q++){ ctx.strokeStyle = rgba('accent', 0.9*a*q/tr.length); ctx.beginPath(); ctx.moveTo(X(tr[q-1][0]),Y(tr[q-1][1])); ctx.lineTo(X(tr[q][0]),Y(tr[q][1])); ctx.stroke(); }
+      ctx.fillStyle = rgba('accent', a); ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),Math.max(1.4,s*0.5),0,Math.PI*2); ctx.fill();
+    }
+  }
+  // front
+  if(PW.on && PW.front < 260){
+    ctx.strokeStyle = rgba('ink', 0.5); ctx.setLineDash([5,5]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(X(PW.src[0]),Y(PW.src[1]),PW.front*s,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = COL.ink; ctx.font=`500 ${Math.max(9,s*2.8)}px "IBM Plex Mono", monospace`; ctx.textAlign='left';
+    const ang = PW.scene==='veri' ? -Math.PI*0.8 : -0.35; const fx = PW.src[0] + Math.cos(ang)*PW.front, fy = PW.src[1] + Math.sin(ang)*PW.front;
+    if(fy > 4 && fx > 2 && fx < 180) ctx.fillText('field front, at light speed', X(fx)+4, Y(fy));
+  }
+  if(!PW.on){ ctx.fillStyle = COL.ink2; ctx.font='500 13px "IBM Plex Sans", sans-serif'; ctx.textAlign='center'; ctx.fillText('No current, no fields, no energy flow. Close the switch.', w/2, h/2+4); }
+  if(PW.frameN % 5 === 0) $('#pw-t').textContent = PW.on ? fmtTimeFine(PW.front*PW.unit/C0) : '—';
+}
+
+
+/* ================= Playground 2: cables cut open ================= */
+const EPS0 = 8.854e-12, MU0 = 4e-7*Math.PI;
+const CX = { type:'cord', load:0.6, pf:1, fault:false, faultT:-1, tripped:false, unbal:1, show:{S:true,E:true,B:false}, person:6, drag:false };
+const CX_OMEGA = 2*Math.PI*0.3;
+const CX_DEF = {
+  cord:{ title:'Lamp cord · 230 V, 2 × 0.75 mm²', hw:4.6, unit:'mm',
+    cond:[{x:-1.35,y:0,r:0.55,lab:'L'},{x:1.35,y:0,r:0.55,lab:'N'}],
+    note:'The simplest guide: two wires side by side. Energy crosses the slice mostly in the gap between them, where E and B are both strong. Inside the copper it is almost zero. Lower the power factor to see red patches: part of every cycle, energy sloshes back to the source.' },
+  tp:{ title:'Twisted pair · one pair from an Ethernet cable', hw:1.6, unit:'mm',
+    cond:[{x:-0.42,y:0,r:0.28,lab:'+'},{x:0.42,y:0,r:0.28,lab:'−'}],
+    note:'A thin, tight pair (100 Ω). Data rides as a difference between the two wires at up to hundreds of MHz, travelling at about two thirds of light speed. The twist, shown below, is what keeps outside noise from sneaking in.' },
+  coax:{ title:'Coaxial cable · 75 Ω TV / antenna cable', hw:5.6, unit:'mm',
+    cond:[{x:0,y:0,r:0.5,lab:'core'}], coax:{a:0.5, b:2.3, c:2.6},
+    note:'All the energy is trapped in the plastic between the centre core and the braided shield. Outside the shield, E and B are both zero, so a coax neither leaks signal nor picks up much noise.' },
+  twin:{ title:'House wiring · live, neutral and earth', hw:6.2, unit:'mm',
+    cond:[{x:-3.1,y:0,r:0.9,lab:'L'},{x:0,y:0,r:0.62,lab:'E', bare:true},{x:3.1,y:0,r:0.9,lab:'N'}],
+    note:'Normally the live and neutral carry equal and opposite currents and the earth carries nothing. Tick the fault: current now returns through the earth wire, live and neutral no longer balance, and the RCD (residual current device) trips within about 30 ms, well before a dangerous shock.' },
+  c3:{ title:'Three-phase 4-core cable · 400 V', hw:9.2, unit:'mm',
+    cond:[{x:-2.1,y:2.1,r:1.3,lab:'L1'},{x:2.1,y:2.1,r:1.3,lab:'L2'},{x:2.1,y:-2.1,r:1.3,lab:'L3'},{x:-2.1,y:-2.1,r:1.3,lab:'N'}],
+    note:'Three live cores, each 120° apart in time. Watch the pattern rotate: the energy flow never stops, because when one phase is at zero the other two are busy. With balanced loads the neutral carries no current at all. Unbalance L1 and it wakes up.' },
+  ohl:{ title:'Overhead line · 220 kV, flat formation', hw:24, unit:'m',
+    cond:[{x:-8,y:15,r:0.35,lab:'A'},{x:0,y:15,r:0.35,lab:'B'},{x:8,y:15,r:0.35,lab:'C'},{x:-5,y:22,r:0.15,lab:'shield',sh:true},{x:5,y:22,r:0.15,lab:'shield',sh:true}],
+    note:'Here the "cable" is just air: the conductors hang 15 m up and the ground acts as the other wall of the guide. Drag the person to walk under the line and read the fields at 1 m height. Everything is well below the public exposure guideline.' },
+};
+function cxPhase(k){ return -2*Math.PI/3*k; }
+function cxSources(th){
+  // returns [{x,y,q,I}] in world units; q, I arbitrary units except ohl (SI)
+  const t = CX.type, d = CX_DEF[t], L = CX.load, phi = Math.acos(CX.pf), src = [];
+  const on = !CX.tripped;
+  if(t==='cord' || t==='tp'){ const v = Math.cos(th), i = on ? L*Math.cos(th-phi) : 0;
+    src.push({x:d.cond[0].x,y:0,q:0.5*v,I:i},{x:d.cond[1].x,y:0,q:-0.5*v,I:-i}); }
+  if(t==='coax'){ src.push({x:0,y:0,q:Math.cos(th),I:L*Math.cos(th-phi), coax:true}); }
+  if(t==='twin'){ const v = Math.cos(th); let iL = on ? L*Math.cos(th-phi) : 0; let iN = -iL, iE = 0;
+    if(CX.fault && on){ iL *= 2.2; iE = -0.75*iL; iN = -0.25*iL; }
+    src.push({x:-3.1,y:0,q:0.6*v,I:iL},{x:0,y:0,q:-0.3*v,I:iE},{x:3.1,y:0,q:-0.3*v,I:iN}); }
+  if(t==='c3'){ let sum = 0; for(let k=0;k<3;k++){ const a = k===0 ? CX.unbal : 1; const i = L*a*Math.cos(th+cxPhase(k)-phi); sum += i;
+      src.push({x:d.cond[k].x,y:d.cond[k].y,q:0.5*Math.cos(th+cxPhase(k)),I:i}); }
+    src.push({x:d.cond[3].x,y:d.cond[3].y,q:0,I:-sum}); }
+  if(t==='ohl'){ const q = ohlCharges(th); const Ipk = 800*Math.SQRT2*L;
+    for(let k=0;k<5;k++){ const c = d.cond[k]; src.push({x:c.x,y:c.y,q:q[k],I: k<3 ? Ipk*Math.cos(th+cxPhase(k)-phi) : 0, img:true}); } }
+  return src;
+}
+// 220 kV potential-coefficient solve for the overhead line
+let OHL_PINV = null;
+function ohlSetup(){
+  const c = CX_DEF.ohl.cond, n = 5, P = [];
+  for(let i=0;i<n;i++){ P.push([]); for(let j=0;j<n;j++){
+    if(i===j) P[i].push(Math.log(2*c[i].y/(i<3?0.12:0.006))/(2*Math.PI*EPS0));
+    else { const D = Math.hypot(c[i].x-c[j].x, c[i].y-c[j].y), Di = Math.hypot(c[i].x-c[j].x, c[i].y+c[j].y); P[i].push(Math.log(Di/D)/(2*Math.PI*EPS0)); } } }
+  OHL_PINV = matInv(P);
+}
+function matInv(M){ const n = M.length, A = M.map((r,i)=>[...r, ...Array.from({length:n},(_,j)=>i===j?1:0)]);
+  for(let c=0;c<n;c++){ let p=c; for(let r=c+1;r<n;r++) if(Math.abs(A[r][c])>Math.abs(A[p][c])) p=r; [A[c],A[p]]=[A[p],A[c]];
+    const d = A[c][c]; for(let k=0;k<2*n;k++) A[c][k]/=d;
+    for(let r=0;r<n;r++){ if(r===c) continue; const f = A[r][c]; for(let k=0;k<2*n;k++) A[r][k]-=f*A[c][k]; } }
+  return A.map(r=>r.slice(n)); }
+function ohlCharges(th){ const Vpk = 220e3/Math.sqrt(3)*Math.SQRT2, v = [0,1,2].map(k=>Vpk*Math.cos(th+cxPhase(k))).concat([0,0]);
+  return OHL_PINV.map(row => row.reduce((s,a,j)=>s+a*v[j],0)); }
+function cxField(src, x, y){
+  let ex=0, ey=0, bx=0, by=0;
+  for(const s of src){
+    if(s.coax){ const r2 = x*x+y*y, r = Math.sqrt(r2), g = CX_DEF.coax.coax; if(r<g.a || r>g.b) continue; ex += s.q*x/r2; ey += s.q*y/r2; bx -= s.I*(-y)/r2; by -= s.I*x/r2; continue; }
+    const rx = x-s.x, ry = y-s.y, r2 = rx*rx+ry*ry+1e-6;
+    if(s.img){ const k = 1/(2*Math.PI*EPS0), ryi = y+s.y, ri2 = rx*rx+ryi*ryi; ex += s.q*k*(rx/r2 - rx/ri2); ey += s.q*k*(ry/r2 - ryi/ri2); const m = MU0/(2*Math.PI); bx -= s.I*m*(-ry)/r2; by -= s.I*m*rx/r2; }
+    else { ex += s.q*rx/r2; ey += s.q*ry/r2; bx -= s.I*(-ry)/r2; by -= s.I*rx/r2; }
+  }
+  return [ex,ey,bx,by];
+}
+function cxInside(x,y){ const d = CX_DEF[CX.type]; for(const c of d.cond){ if(Math.hypot(x-c.x,y-c.y) < c.r) return true; } if(d.coax){ const r = Math.hypot(x,y); if(r>d.coax.b && r<d.coax.c) return true; } if(CX.type==='ohl' && y<0) return true; return false; }
+function cxSetType(t){ CX.type = t; segSet($('#cx-type'),'t',t); CX.tripped = false; CX.faultT = -1; $('#cx-fault').checked = CX.fault = false;
+  $('#cx-fault-box').hidden = t!=='twin'; $('#cx-unbal-box').hidden = t!=='c3'; $('#cx-title').textContent = CX_DEF[t].title; $('#cx-note').textContent = CX_DEF[t].note;
+  CX.sref = null; cxStats(); }
+function cxRead(){ CX.load = +$('#cx-load').value/100; CX.pf = +$('#cx-pf').value/100; CX.unbal = +$('#cx-unbal').value/100;
+  $('#cx-load-o').textContent = Math.round(CX.load*100)+'%'; $('#cx-pf-o').textContent = CX.pf.toFixed(2)+(CX.pf<1?' lagging':''); $('#cx-unbal-o').textContent = Math.round(CX.unbal*100)+'%'; CX.sref = null; cxStats(); }
+['#cx-load','#cx-pf','#cx-unbal'].forEach(s => $(s).addEventListener('input', cxRead));
+$('#cx-type').addEventListener('click', e => { const b = e.target.closest('button'); if(b) cxSetType(b.dataset.t); });
+$('#cx-show').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; const k = b.dataset.k; CX.show[k] = !CX.show[k]; b.setAttribute('aria-pressed', String(CX.show[k])); });
+$('#cx-fault').addEventListener('change', e => { CX.fault = e.target.checked; CX.tripped = false; CX.faultT = CX.fault ? state.t : -1; if(!CX.fault) $('#cx-note').textContent = CX_DEF.twin.note; cxStats(); });
+function statRows(rows){ return rows.map(([a,b]) => `<div class="stat"><span>${a}</span><span>${b}</span></div>`).join(''); }
+function ohlRms(xp, yp){ let e2=0, b2=0; const N = 24; for(let k=0;k<N;k++){ const th = 2*Math.PI*k/N; const f = cxField(cxSources(th), xp, yp); e2 += f[0]*f[0]+f[1]*f[1]; b2 += f[2]*f[2]+f[3]*f[3]; } return [Math.sqrt(e2/N), Math.sqrt(b2/N)]; }
+function cxStats(){
+  const t = CX.type, L = CX.load, pf = CX.pf; let rows = [];
+  if(t==='cord'){ const I = 6*L; rows = [['Voltage','230 V'],['Current',sig(I,2)+' A'],['Power',fmtNum(230*I*pf,0)+' W'],['Field 1 m away',sig(2e-7*I*0.0027/1*1e6,2)+' µT'],['Earth’s own field','≈ 50 µT']]; }
+  if(t==='tp'){ rows = [['Signal','≈ 1 V difference'],['Impedance','100 Ω'],['Current','≈ 10 mA'],['Signal speed','≈ 0.65 × c'],['Symbol rate (1 Gbit/s)','125 million / s per pair']]; }
+  if(t==='coax'){ rows = [['Impedance','75 Ω'],['Signal speed','0.66 – 0.85 × c'],['Field outside the shield','0'],['Energy inside the copper','almost 0']]; }
+  if(t==='twin'){ const I = 16*L; const fault = CX.fault && !CX.tripped;
+    rows = [['Voltage','230 V'],['Live current',sig(fault?I*2.2:(CX.tripped?0:I),2)+' A'],['Earth-wire current', fault ? sig(I*2.2*0.75,2)+' A' : '0 A'],['Live minus neutral', fault ? sig(I*2.2*0.75,2)+' A' : '0 A'],['RCD', CX.tripped ? '<span class="chip bad">tripped</span>' : fault ? '<span class="chip warn">tripping…</span>' : '<span class="chip good">armed (30 mA)</span>']]; }
+  if(t==='c3'){ const I = 32*L, iN = Math.abs(CX.unbal-1)*I; rows = [['Voltage','400 V line, 230 V phase'],['Phase currents',`${sig(I*CX.unbal,2)} / ${sig(I,2)} / ${sig(I,2)} A`],['Neutral current', iN<0.05 ? '<span class="chip good">0 A</span>' : `<span class="chip warn">${sig(iN,2)} A</span>`],['Total power', sig(230*I*(CX.unbal+2)*pf/1000,3)+' kW'],['Power over a cycle', CX.unbal===1 ? 'perfectly steady' : 'pulses']]; }
+  if(t==='ohl'){ const [e,b] = ohlRms(CX.person, 1); const P = Math.sqrt(3)*220e3*800*L*pf;
+    rows = [['Voltage','220 kV'],['Current per phase',fmtNum(800*L,0)+' A'],['Power carried',fmtNum(P/1e6,0)+' MW'],['E at 1 m, where you stand',sig(e/1000,2)+' kV/m'],['B at 1 m',sig(b*1e6,2)+' µT'],['Public guideline (ICNIRP)','5 kV/m · 200 µT']]; }
+  $('#cx-stats').innerHTML = statRows(rows);
+}
+const cxOff = document.createElement('canvas'); cxOff.width = 192; cxOff.height = 120;
+function cxView(w,h){ const d = CX_DEF[CX.type], HW = d.hw, HH = HW*h/w, cy = CX.type==='ohl' ? HH - 2 : 0; return {HW, HH, cy}; }
+const cxC = $('#cx-c');
+cxC.addEventListener('pointerdown', e => { if(CX.type!=='ohl') return; CX.drag = true; cxC.setPointerCapture(e.pointerId); cxMove(e); });
+cxC.addEventListener('pointermove', e => { if(CX.drag) cxMove(e); });
+cxC.addEventListener('pointerup', () => CX.drag = false);
+function cxMove(e){ const r = cxC.getBoundingClientRect(); const HW = CX_DEF.ohl.hw; CX.person = clamp(((e.clientX-r.left)/r.width*2-1)*HW, -HW+1, HW-1); cxStats(); }
+function drawCX(){
+  const {ctx,w,h} = setup(cxC); const {HW,HH,cy} = cxView(w,h); const sc = w/(2*HW);
+  const toX = x => w/2 + x*sc, toY = y => h/2 - (y-cy)*sc;
+  const th = CX_OMEGA*state.t, src = cxSources(th);
+  if(CX.type==='twin' && CX.fault && !CX.tripped && CX.faultT>=0 && state.t - CX.faultT > 1.6){ CX.tripped = true; $('#cx-note').textContent = 'The RCD saw current leaving on the live wire that did not come back on the neutral, and cut the power. Untick the fault to reset it.'; cxStats(); }
+  // reference energy flux: max over cycle at a probe point
+  if(!CX.sref){ const d = CX_DEF[CX.type]; const px = CX.type==='coax' ? 1.2 : CX.type==='ohl' ? 0 : 0, py = CX.type==='ohl' ? 8 : (CX.type==='c3' ? 0 : 0);
+    let m = 1e-30; for(let k=0;k<24;k++){ const s = cxSources(2*Math.PI*k/24); const f = cxField(s, px, py); m = Math.max(m, Math.abs(f[0]*f[3]-f[1]*f[2])); } CX.sref = m; }
+  const OW = cxOff.width, OH = cxOff.height, oc = cxOff.getContext('2d'), img = oc.createImageData(OW,OH), R = COL.rgb;
+  for(let j=0;j<OH;j++) for(let i=0;i<OW;i++){
+    const x = ((i+.5)/OW*2-1)*HW, y = cy + (1-(j+.5)/OH*2)*HH, o = (j*OW+i)*4; let c = R.panel;
+    if(CX.show.S && !cxInside(x,y)){ const f = cxField(src,x,y); const v = -(f[0]*f[3]-f[1]*f[2])/CX.sref;
+      const a = Math.min(1, Math.sqrt(Math.abs(v))*0.9), tgt = v>=0 ? R.t1 : R.bad; c = [lerp(R.panel[0],tgt[0],a), lerp(R.panel[1],tgt[1],a), lerp(R.panel[2],tgt[2],a)]; }
+    img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=255; }
+  oc.putImageData(img,0,0); ctx.imageSmoothingEnabled = true; ctx.drawImage(cxOff,0,0,w,h);
+  // ground for ohl
+  const d = CX_DEF[CX.type];
+  if(CX.type==='ohl'){ ctx.fillStyle = rgba('t3',0.25); ctx.fillRect(0,toY(0),w,h-toY(0)); ctx.strokeStyle = COL.t3; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,toY(0)); ctx.lineTo(w,toY(0)); ctx.stroke();
+    // tower
+    ctx.strokeStyle = rgba('ink',0.45); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(toX(-2.5),toY(0)); ctx.lineTo(toX(-1),toY(24)); ctx.lineTo(toX(1),toY(24)); ctx.lineTo(toX(2.5),toY(0)); ctx.moveTo(toX(-10),toY(15.6)); ctx.lineTo(toX(10),toY(15.6)); ctx.moveTo(toX(-6),toY(22.3)); ctx.lineTo(toX(6),toY(22.3)); ctx.stroke();
+    for(let k=0;k<3;k++){ const c = d.cond[k]; ctx.beginPath(); ctx.moveTo(toX(c.x),toY(15.6)); ctx.lineTo(toX(c.x),toY(c.y+0.35)); ctx.stroke(); } }
+  // arrows
+  const arrows = (key, col) => {
+    const nx = 18, ny = Math.round(nx*h/w); let mags = [];
+    for(let a=0;a<ny;a++) for(let b=0;b<nx;b++){ const x = ((b+.5)/nx*2-1)*HW, y = cy + (1-(a+.5)/ny*2)*HH; if(cxInside(x,y)) continue; const f = cxField(src,x,y); const vx = key==='E'?f[0]:f[2], vy = key==='E'?f[1]:f[3]; mags.push([x,y,vx,vy,Math.hypot(vx,vy)]); }
+    const sorted = mags.map(m=>m[4]).sort((p,q)=>p-q), ref = sorted[Math.floor(sorted.length*0.85)] || 1;
+    const L = w/nx*0.36;
+    for(const [x,y,vx,vy,m] of mags){ if(m < ref*0.02) continue; const a = clamp(0.2+0.35*Math.log10(m/ref)+0.5, 0.12, 0.95); const ux = vx/m, uy = -vy/m, X = toX(x), Y = toY(y);
+      ctx.strokeStyle = rgba(col, a); ctx.fillStyle = rgba(col, a); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X-ux*L, Y-uy*L); ctx.lineTo(X+ux*L, Y+uy*L); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X+ux*L, Y+uy*L); ctx.lineTo(X+ux*L*0.3-uy*L*0.45, Y+uy*L*0.3+ux*L*0.45); ctx.lineTo(X+ux*L*0.3+uy*L*0.45, Y+uy*L*0.3-ux*L*0.45); ctx.closePath(); ctx.fill(); }
+  };
+  if(CX.show.E) arrows('E','t3');
+  if(CX.show.B) arrows('B','ink2');
+  // insulation / jackets
+  ctx.strokeStyle = rgba('ink',0.55); ctx.lineWidth = 1.5;
+  if(CX.type==='cord'){ ctx.beginPath(); ctx.ellipse(toX(0),toY(0),2.6*sc,1.25*sc,0,0,Math.PI*2); ctx.stroke(); }
+  if(CX.type==='tp'){ ctx.beginPath(); ctx.arc(toX(-0.42),toY(0),0.5*sc,0,Math.PI*2); ctx.arc(toX(0.42),toY(0),0.5*sc,0,Math.PI*2); ctx.stroke(); }
+  if(CX.type==='twin'){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(toX(-5),toY(1.8),10*sc,3.6*sc,1.6*sc) : ctx.rect(toX(-5),toY(1.8),10*sc,3.6*sc); ctx.stroke(); [-3.1,3.1].forEach(x=>{ ctx.beginPath(); ctx.arc(toX(x),toY(0),1.35*sc,0,Math.PI*2); ctx.stroke(); }); }
+  if(CX.type==='c3'){ ctx.beginPath(); ctx.arc(toX(0),toY(0),5.3*sc,0,Math.PI*2); ctx.stroke(); }
+  if(CX.type==='coax'){ const g = d.coax; ctx.fillStyle = '#A9B4BF'; ctx.beginPath(); ctx.arc(toX(0),toY(0),g.c*sc,0,Math.PI*2); ctx.arc(toX(0),toY(0),g.b*sc,0,Math.PI*2,true); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(toX(0),toY(0),(g.c+0.45)*sc,0,Math.PI*2); ctx.stroke(); }
+  // conductors
+  const copper = COL.rgb.paper[0] < 100 ? '#D99A62' : '#B06A34';
+  src.forEach((s,k) => {
+    const c = d.cond[k] || d.cond[0]; if(!c) return;
+    const X = toX(c.x), Y = toY(c.y), rr = Math.max(c.r*sc, 5);
+    ctx.fillStyle = c.bare ? '#C9A77C' : (CX.type==='ohl' ? '#A9B4BF' : copper); ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(X,Y,rr,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    // current symbol: + toward load = into screen (⊗)
+    const Imax = CX.type==='ohl' ? 800*Math.SQRT2 : 1; const ii = s.I/Imax;
+    if(Math.abs(ii) > 0.08 && rr > 7){ const R2 = rr*0.5*Math.min(1, Math.abs(ii)+0.3); ctx.strokeStyle = '#fff'; ctx.fillStyle = '#fff'; ctx.lineWidth = 2;
+      if(ii>0){ ctx.beginPath(); ctx.moveTo(X-R2,Y-R2); ctx.lineTo(X+R2,Y+R2); ctx.moveTo(X+R2,Y-R2); ctx.lineTo(X-R2,Y+R2); ctx.stroke(); } else { ctx.beginPath(); ctx.arc(X,Y,R2*0.45,0,Math.PI*2); ctx.fill(); } }
+    ctx.fillStyle = COL.ink; ctx.font = '600 12px "IBM Plex Sans", sans-serif'; ctx.textAlign='center';
+    const lab = c.lab + (CX.type==='c3' || CX.type==='ohl' ? '' : '');
+    if(!c.sh) ctx.fillText(lab, X, Y - rr - 6);
+  });
+  if(CX.type==='coax'){ ctx.fillStyle = COL.ink; ctx.font='600 12px "IBM Plex Sans", sans-serif'; ctx.textAlign='center'; ctx.fillText('braided shield', toX(0), toY(d.coax.c+0.45)-6); }
+  // person
+  if(CX.type==='ohl'){ const X = toX(CX.person), gY = toY(0), s2 = sc*1.8; ctx.strokeStyle = COL.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(X, gY - s2*0.92, s2*0.08, 0, Math.PI*2); ctx.moveTo(X, gY-s2*0.84); ctx.lineTo(X, gY-s2*0.45); ctx.lineTo(X-s2*0.12, gY); ctx.moveTo(X, gY-s2*0.45); ctx.lineTo(X+s2*0.12, gY); ctx.moveTo(X-s2*0.18, gY-s2*0.7); ctx.lineTo(X+s2*0.18, gY-s2*0.7); ctx.stroke();
+    ctx.fillStyle = COL.accent; ctx.beginPath(); ctx.arc(X, toY(1), 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = COL.ink; ctx.font='500 11px "IBM Plex Mono", monospace'; ctx.fillText('drag me', X, gY+16);
+    if(Math.floor(state.t*4)%4===0) cxStats(); }
+  if(CX.tripped){ ctx.fillStyle = rgba('panel',0.85); ctx.fillRect(w/2-120, 14, 240, 30); ctx.fillStyle = COL.bad; ctx.font='700 14px "IBM Plex Sans", sans-serif'; ctx.textAlign='center'; ctx.fillText('RCD TRIPPED · power off', w/2, 34); }
+  $('#cx-scale').textContent = CX.type==='ohl' ? 'view 48 m wide' : `view ${sig(2*HW,2)} mm wide`;
+  drawCXWave(th);
+}
+function drawCXWave(th){
+  const {ctx,w,h} = setup($('#cx-w')); ctx.clearRect(0,0,w,h);
+  const t = CX.type, phi = Math.acos(CX.pf), L = CX.load, my = h/2, A = h*0.36, three = t==='c3' || t==='ohl';
+  ctx.strokeStyle = COL.grid; ctx.beginPath(); ctx.moveTo(0,my+.5); ctx.lineTo(w,my+.5); ctx.stroke();
+  const span = 2*Math.PI*1.5, X = a => (a/span)*w, T0 = th - span*0.75;
+  const plot = (fn, col, lw, dash) => { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.setLineDash(dash||[]); ctx.beginPath(); for(let x=0;x<=w;x+=2){ const a = T0 + x/w*span; const y = my - A*fn(a); x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); ctx.setLineDash([]); };
+  const on = !CX.tripped;
+  if(three){ const cols = [COL.t1, COL.t2, COL.t3];
+    for(let k=0;k<3;k++) plot(a => Math.cos(a+cxPhase(k)), cols[k], 1.3);
+    plot(a => { let p=0; for(let k=0;k<3;k++){ const amp = (t==='c3' && k===0) ? CX.unbal : 1; p += Math.cos(a+cxPhase(k))*amp*L*Math.cos(a+cxPhase(k)-phi); } return on ? p/1.5 - 0 : 0; }, COL.accent, 2.4);
+    $('#cx-wave-l').textContent = 'three phase voltages · orange = total power';
+  } else {
+    plot(a => Math.cos(a), COL.t1, 1.6); plot(a => on ? L*Math.cos(a-phi) : 0, COL.t2, 1.6, [5,4]);
+    plot(a => on ? Math.cos(a)*L*Math.cos(a-phi) : 0, COL.accent, 2.4);
+    $('#cx-wave-l').textContent = 'blue = voltage · dashed = current · orange = power (below zero = flowing back)';
+  }
+  const cx = X(span*0.75); ctx.strokeStyle = COL.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.stroke();
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left'; ctx.fillText('NOW', cx+4, 12);
+}
+
+/* ---- twisted pair noise demo ---- */
+const TP = { tw:true, rate:40, sx:0.62, sy:0.78, drag:false };
+const tpC = $('#tp-c');
+$('#tp-mode').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; TP.tw = b.dataset.v==='tw'; segSet($('#tp-mode'),'v',b.dataset.v); });
+$('#tp-rate').addEventListener('input', e => { TP.rate = +e.target.value; $('#tp-rate-o').textContent = TP.rate; });
+tpC.addEventListener('pointerdown', e => { TP.drag = true; tpC.setPointerCapture(e.pointerId); tpMove(e); });
+tpC.addEventListener('pointermove', e => { if(TP.drag) tpMove(e); });
+tpC.addEventListener('pointerup', () => TP.drag = false);
+function tpMove(e){ const r = tpC.getBoundingClientRect(); TP.sx = clamp((e.clientX-r.left)/r.width, 0.03, 0.97); TP.sy = clamp((e.clientY-r.top)/r.height, 0.05, 0.95); }
+function drawTP(){
+  const {ctx,w,h} = setup(tpC); ctx.clearRect(0,0,w,h);
+  const Lm = 0.5, x0 = 30, x1 = w-60, yc = h*0.42, a = 13, n = TP.rate*Lm; // twists across the view
+  const sx = TP.sx*w, sy = TP.sy*h;
+  const Bz = (x,y) => 1/(((x-sx)/60)**2 + ((y-sy)/60)**2 + 0.25);
+  const wave = Math.sin(2*Math.PI*1.2*state.t);
+  // loops
+  const N = 400; let emf = 0, straight = 0;
+  for(let i=0;i<N;i++){ const u0 = i/N, u1 = (i+1)/N, xm = lerp(x0,x1,(u0+u1)/2);
+    const sep = TP.tw ? Math.sin(2*Math.PI*n*(u0+u1)/2) : 1; const b = Bz(xm, yc);
+    emf += sep*b/N; straight += b/N;
+    const al = Math.min(0.6, Math.abs(sep)*b*1.1*(0.4+0.6*Math.abs(wave)));
+    ctx.fillStyle = rgba(sep*wave >= 0 ? 't1' : 't2', al);
+    const ya = yc - a*sep, yb = yc + a*sep; ctx.fillRect(lerp(x0,x1,u0), Math.min(ya,yb), (x1-x0)/N+0.6, Math.abs(ya-yb)); }
+  // wires
+  const drawWire = (sg, col) => { ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); for(let i=0;i<=N;i++){ const u = i/N, x = lerp(x0,x1,u), y = yc - sg*a*(TP.tw ? Math.sin(2*Math.PI*n*u) : 1); i?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); };
+  drawWire(1, '#B06A34'); drawWire(-1, COL.ink2);
+  // ends
+  ctx.fillStyle = COL.ink; ctx.font='600 12px "IBM Plex Sans", sans-serif'; ctx.textAlign='left'; ctx.fillText('sender', 4, yc-a-10); ctx.textAlign='right'; ctx.fillText('receiver', w-4, yc-a-10);
+  ctx.fillStyle = COL.panel; ctx.strokeStyle = COL.ink; ctx.lineWidth=1.5; ctx.beginPath(); ctx.rect(x1+8, yc-18, 40, 36); ctx.fill(); ctx.stroke();
+  // noise meter in receiver
+  const rel = Math.abs(emf)/straight; const lvl = Math.abs(emf)*wave;
+  ctx.fillStyle = rel > 0.25 ? COL.bad : COL.good; const bh = clamp(Math.abs(lvl)/Math.max(straight,1e-6),0,1)*30; ctx.fillRect(x1+12, yc+15-bh, 32, bh);
+  // noise source
+  for(let k=0;k<4;k++){ const rr = ((state.t*40 + k*30) % 120) + 10; ctx.strokeStyle = rgba('bad', 0.5*(1-rr/130)); ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(sx,sy,rr,0,Math.PI*2); ctx.stroke(); }
+  ctx.fillStyle = COL.bad; ctx.beginPath(); ctx.arc(sx,sy,9,0,Math.PI*2); ctx.fill(); ctx.fillStyle = COL.ink; ctx.textAlign='center'; ctx.font='600 12px "IBM Plex Sans", sans-serif'; ctx.fillText('noisy motor cable', sx, sy+24);
+  $('#tp-noise').innerHTML = rel > 0.25 ? `<span class="chip bad">${Math.round(rel*100)}%</span>` : `<span class="chip good">${sig(rel*100,2)}%</span>`;
+  $('#tp-rel').textContent = TP.tw ? `${sig(1/Math.max(rel,1e-4),2)}× quieter` : 'this is the straight pair';
+}
+
+/* ================= Playground 3: long lines ================= */
+// complex helpers
+const cx = (re,im=0) => ({re,im});
+const cadd = (a,b) => cx(a.re+b.re, a.im+b.im), csub = (a,b) => cx(a.re-b.re, a.im-b.im);
+const cmul = (a,b) => cx(a.re*b.re - a.im*b.im, a.re*b.im + a.im*b.re);
+const cdiv = (a,b) => { const d = b.re*b.re + b.im*b.im; return cx((a.re*b.re + a.im*b.im)/d, (a.im*b.re - a.re*b.im)/d); };
+const cabs = a => Math.hypot(a.re, a.im), carg = a => Math.atan2(a.im, a.re), conj = a => cx(a.re, -a.im);
+const csqrt = a => { const r = Math.sqrt(cabs(a)), t = carg(a)/2; return cx(r*Math.cos(t), r*Math.sin(t)); };
+const cexp = a => { const e = Math.exp(a.re); return cx(e*Math.cos(a.im), e*Math.sin(a.im)); };
+const ccosh = a => { const p = cexp(a), m = cexp(cx(-a.re,-a.im)); return cx((p.re+m.re)/2, (p.im+m.im)/2); };
+const csinh = a => { const p = cexp(a), m = cexp(cx(-a.re,-a.im)); return cx((p.re-m.re)/2, (p.im-m.im)/2); };
+const cscale = (a,s) => cx(a.re*s, a.im*s);
+
+const LN_KV = { 132:{r:0.16, x:0.40, b:2.80e-6, ith:600, cond:'1 × ACSR Panther'}, 220:{r:0.075, x:0.41, b:2.80e-6, ith:900, cond:'1 × ACSR Zebra'},
+  400:{r:0.030, x:0.33, b:3.45e-6, ith:2000, cond:'2 × ACSR Moose (twin bundle)'}, 765:{r:0.012, x:0.27, b:4.20e-6, ith:4000, cond:'4 × ACSR Bersimis (quad bundle)'} };
+const LN = { len:300, kv:400, pfSlider:95, pSlider:45, sc:0, shr:false, res:null, parts:[] };
+function lnPf(){ const v = LN.pfSlider; if(v===100) return {pf:1, sgn:0, txt:'1.00'}; if(v<100) return {pf:v/100, sgn:1, txt:(v/100).toFixed(2)+' lagging'}; return {pf:(200-v)/100, sgn:-1, txt:((200-v)/100).toFixed(2)+' leading'}; }
+function lnPmax(){ const p = LN_KV[LN.kv]; return Math.sqrt(3)*LN.kv*p.ith/1000; } // MW
+function lnSolve(Pmw, opts={}){
+  const p = LN_KV[LN.kv], l = LN.len, kv = LN.kv, Vph = kv*1e3/Math.sqrt(3);
+  const z = cx(p.r, p.x*(1-LN.sc)), y = cx(0, p.b);
+  const g = csqrt(cmul(z,y)), Zc = csqrt(cdiv(z,y));
+  const gl = cscale(g, l), A0 = ccosh(gl), B = cmul(Zc, csinh(gl)), C0 = cdiv(csinh(gl), Zc);
+  // shunt reactor at the far end, sized to absorb half the line charging at rated voltage: admittance -j Q / V^2
+  const Ysh = LN.shr ? cx(0, -(Vph*Vph*p.b*l*0.5)/(Vph*Vph)) : cx(0,0);
+  const A = cadd(A0, cmul(B, Ysh)), C = cadd(C0, cmul(A0, Ysh));
+  const {pf, sgn} = lnPf(); const Pph = Pmw*1e6/3, Qph = sgn * Pph*Math.tan(Math.acos(pf));
+  const S = cx(Pph, Qph), K = cmul(B, conj(S));
+  const a2 = cabs(A)**2, bq = 2*(A.re*K.re + A.im*K.im) - Vph*Vph, c = cabs(K)**2, disc = bq*bq - 4*a2*c;
+  if(disc < 0) return {collapse:true, g, Zc, Vph};
+  const X = (-bq + Math.sqrt(disc))/(2*a2);
+  if(!(X > 0)) return {collapse:true, g, Zc, Vph};
+  const R = Math.sqrt(X), th = -carg(cadd(cscale(A, X), K));
+  const VR = cx(R*Math.cos(th), R*Math.sin(th));
+  const IR = X > 0 && Pmw > 0 ? conj(cdiv(S, VR)) : cx(0,0);
+  const IL = cadd(IR, cmul(Ysh, VR));          // current leaving the line into load + reactor
+  const VS = cx(Vph,0), IS = cadd(cmul(C, VR), cmul(A0, IR));
+  const PS = 3*(VS.re*IS.re + VS.im*IS.im)/1e6, PR = Pmw;
+  const prof = [];
+  if(!opts.fast){ for(let i=0;i<=120;i++){ const s = l*i/120, xr = l - s, gx = cscale(g, xr), ch = ccosh(gx), sh = csinh(gx);
+    const V = cadd(cmul(VR,ch), cmul(cmul(Zc,IL),sh)), I = cadd(cmul(IL,ch), cmul(cdiv(VR,Zc),sh));
+    prof.push({s, V, I, P: 3*(V.re*I.re + V.im*I.im)/1e6}); } }
+  return {collapse:false, g, Zc, Vph, VR, IR, VS, IS, PS, PR, prof, delta: -carg(VR)*180/Math.PI};
+}
+function lnUpdate(){
+  LN.len = +$('#ln-len').value; LN.pSlider = +$('#ln-pw').value; LN.pfSlider = +$('#ln-pf').value; LN.sc = +$('#ln-sc').value/100; LN.shr = $('#ln-shr').checked;
+  const P = LN.pSlider/100*lnPmax(); LN.P = P;
+  $('#ln-len-o').textContent = fmtNum(LN.len)+' km'; $('#ln-pw-o').textContent = fmtNum(P,0)+' MW'; $('#ln-pf-o').textContent = lnPf().txt; $('#ln-sc-o').textContent = Math.round(LN.sc*100)+'%';
+  segSet($('#ln-pre'),'l', LN.len<=100 && LN.len>=50 ? 75 : LN.len>100 && LN.len<=500 ? 300 : LN.len>500 ? 800 : -1);
+  const r = lnSolve(P); LN.res = r; const p = LN_KV[LN.kv];
+  const cls = LN.len < 80 ? 'short: R + X is enough' : LN.len <= 250 ? 'medium: π model' : 'long: distributed model';
+  $('#ln-cls').textContent = cls;
+  const Zc0 = Math.sqrt(p.x/p.b), sil = LN.kv*LN.kv/Zc0; $('#ln-sil').textContent = fmtNum(sil,0)+' MW';
+  $('#ln-qc').textContent = fmtNum(LN.kv*LN.kv*p.b*LN.len,0)+' Mvar';
+  const beta = r.g.im, lam = 2*Math.PI/beta, v = 2*Math.PI*50/beta;
+  $('#ln-wl').textContent = sig(LN.len/lam*100,2)+'% (λ ≈ '+fmtNum(Math.round(lam/10)*10)+' km)';
+  $('#ln-tt').textContent = fmtTime(LN.len/v) + ' at ' + sig(v*1000/C0,3)+' c';
+  if(r.collapse){
+    $('#ln-vr').innerHTML = '<span class="chip bad">voltage collapse</span>'; $('#ln-pr').textContent = '0 MW (blackout)'; $('#ln-loss').textContent = '—'; $('#ln-d').textContent = 'beyond the limit';
+  } else {
+    const vr = cabs(r.VR)/r.Vph; const chip = vr > 1.05 ? 'warn' : vr < 0.95 ? (vr < 0.9 ? 'bad' : 'warn') : 'good';
+    $('#ln-vr').innerHTML = `<span class="chip ${chip}">${fmtNum(vr*LN.kv,0)} kV · ${fmtNum(vr*100,1)}%</span>`;
+    $('#ln-pr').textContent = fmtNum(r.PR,0)+' MW';
+    const loss = r.PS - r.PR; $('#ln-loss').textContent = `${fmtNum(loss,1)} MW (${r.PS>0.5 ? sig(loss/r.PS*100,2) : '0'}%)`;
+    $('#ln-d').textContent = fmtNum(r.delta,1)+'°';
+  }
+  // practical limit
+  let lo = 0, hi = lnPmax()*1.6, best = 0;
+  for(let k=0;k<40;k++){ const m = (lo+hi)/2, q = lnSolve(m, {fast:true}); const ok = !q.collapse && q.delta <= 35 && cabs(q.VR)/q.Vph >= 0.95; if(ok){ best = m; lo = m; } else hi = m; }
+  const lim = Math.min(best, lnPmax());
+  $('#ln-lim').textContent = `${fmtNum(lim,0)} MW (${sig(lim/sil,2)} × SIL)` + (best > lnPmax() ? ', heat-limited' : '');
+  $('#ln-scale').textContent = `${fmtNum(LN.len)} km · ${LN.kv} kV · ${p.cond} · towers not to scale`;
+  LN.parts = [];
+  dirty.lnp = true;
+}
+['#ln-len','#ln-pw','#ln-pf','#ln-sc'].forEach(s => $(s).addEventListener('input', lnUpdate));
+$('#ln-shr').addEventListener('change', lnUpdate);
+$('#ln-pre').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; $('#ln-len').value = b.dataset.l; lnUpdate(); });
+$('#ln-kv').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; LN.kv = +b.dataset.k; segSet($('#ln-kv'),'k',LN.kv); lnUpdate(); });
+const LN_W = 2*Math.PI*0.5;
+function lnGeom(w,h){ const x0 = w*0.09, x1 = w*0.91, gy = h*0.86, nT = 7, tH = h*0.5; return {x0,x1,gy,nT,tH}; }
+function lnWireY(u, G, k){ // u 0..1 along line, k phase index -> y
+  const seg = u*(G.nT-1), i = Math.min(G.nT-2, Math.floor(seg)), f = seg - i, top = G.gy - G.tH + k*G.tH*0.12;
+  return top + G.tH*0.14*4*f*(1-f);
+}
+function drawLN(){
+  const cv = $('#ln-c'); const {ctx,w,h} = setup(cv); ctx.clearRect(0,0,w,h);
+  const G = lnGeom(w,h), r = LN.res, t = state.t;
+  // ground & hills
+  ctx.fillStyle = rgba('t3',0.16); ctx.beginPath(); ctx.moveTo(0,h); for(let x=0;x<=w;x+=8){ const y = G.gy - 6*Math.sin(x/90) - 4*Math.sin(x/37); ctx.lineTo(x,y); } ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+  // towers
+  ctx.strokeStyle = rgba('ink',0.55); ctx.lineWidth = 1.4;
+  for(let i=0;i<G.nT;i++){ const x = lerp(G.x0,G.x1,i/(G.nT-1)), top = G.gy - G.tH - 8;
+    ctx.beginPath(); ctx.moveTo(x-10,G.gy); ctx.lineTo(x-3,top); ctx.lineTo(x+3,top); ctx.lineTo(x+10,G.gy); ctx.moveTo(x-8,G.gy-G.tH*0.3); ctx.lineTo(x+8,G.gy-G.tH*0.3); ctx.moveTo(x-7,G.gy-G.tH*0.5); ctx.lineTo(x+6,G.gy-G.tH*0.7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-16,top+8); ctx.lineTo(x+16,top+8); ctx.stroke(); }
+  // substation & city
+  ctx.fillStyle = COL.panel; ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.rect(6, G.gy-40, G.x0-14, 40); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = COL.ink; ctx.font='600 11px "IBM Plex Sans", sans-serif'; ctx.textAlign='center'; ctx.fillText('power', (6+G.x0-8)/2, G.gy-24); ctx.fillText('station', (6+G.x0-8)/2, G.gy-11);
+  const collapse = !r || r.collapse, vr = collapse ? 0 : cabs(r.VR)/r.Vph, lit = collapse ? 0 : clamp(vr, 0, 1.2)*(LN.P>1?1:0.2);
+  const bx = G.x1+8, bw = w-bx-6;
+  for(let k=0;k<5;k++){ const hh = 20 + (k*37%3)*14 + (k%2)*10, xx = bx + k*bw/5; ctx.fillStyle = COL.ink2; ctx.fillRect(xx, G.gy-hh, bw/5-2, hh);
+    for(let yy=G.gy-hh+5; yy<G.gy-4; yy+=7) for(let q=0;q<2;q++){ const on = ((k*7+yy+q*3)%5) < 4; ctx.fillStyle = on && lit>0.1 ? `rgba(255,205,90,${0.35+0.6*Math.min(1,lit)})` : rgba('panel',0.25); ctx.fillRect(xx+2+q*(bw/10-1), yy, bw/10-4, 3); } }
+  ctx.fillStyle = COL.ink; ctx.textAlign='center'; ctx.fillText(collapse ? 'BLACKOUT' : 'city', bx+bw/2, G.gy+14);
+  // conductors coloured by instantaneous voltage + loss glow
+  if(r && !r.collapse){
+    const Vn = r.Vph, In = LN_KV[LN.kv].ith;
+    for(let k=0;k<3;k++){
+      for(let i=0;i<120;i++){ const a = r.prof[i], b = r.prof[i+1]; const u0 = i/120, u1 = (i+1)/120;
+        const ph = LN_W*t - 2*Math.PI/3*k, v = cabs(a.V)/Vn*Math.cos(ph + carg(a.V));
+        const c = divColor(clamp(v*0.9,-1,1)); const heat = clamp((cabs(a.I)/In)**2, 0, 1.5);
+        const X0 = lerp(G.x0,G.x1,u0), X1 = lerp(G.x0,G.x1,u1), Y0 = lnWireY(u0,G,k), Y1 = lnWireY(u1,G,k);
+        if(heat > 0.05){ ctx.strokeStyle = rgba('bad', 0.25*heat); ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(X0,Y0); ctx.lineTo(X1,Y1); ctx.stroke(); }
+        ctx.strokeStyle = `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(X0,Y0); ctx.lineTo(X1,Y1); ctx.stroke(); }
+    }
+    // energy particles along the middle phase
+    const PS = Math.max(r.PS, 0.001), target = Math.round(clamp(r.PS/lnPmax(),0,1.5)*140);
+    while(LN.parts.length < target) LN.parts.push({u: Math.random(), j: Math.random()});
+    if(LN.parts.length > target) LN.parts.length = target;
+    const spd = 0.09;
+    for(const p of LN.parts){ if(state.running) p.u += spd*(1/60); if(p.u > 1){ p.u -= 1; p.j = Math.random(); }
+      const idx = Math.min(119, Math.floor(p.u*120)), frac = r.prof[idx].P / PS;
+      if(p.j > frac) continue;  // particles thin out as losses eat the power
+      const k = Math.floor(p.j*3)%3, X = lerp(G.x0,G.x1,p.u), Y = lnWireY(p.u,G,k) - 5 - (p.j*7%1)*6;
+      ctx.fillStyle = rgba('accent', 0.85); ctx.beginPath(); ctx.arc(X, Y, 2.2, 0, Math.PI*2); ctx.fill(); }
+  } else if(r){ ctx.strokeStyle = COL.ink2; ctx.lineWidth = 2; for(let k=0;k<3;k++){ ctx.beginPath(); for(let i=0;i<=120;i++){ const u=i/120; const X=lerp(G.x0,G.x1,u), Y=lnWireY(u,G,k); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);} ctx.stroke(); }
+    ctx.fillStyle = COL.bad; ctx.font='700 15px "IBM Plex Sans", sans-serif'; ctx.textAlign='center'; ctx.fillText('No solution: the line cannot deliver this much power. Voltage collapses.', w/2, h*0.2); }
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left'; ctx.fillText('0 km', G.x0-10, h-4); ctx.textAlign='right'; ctx.fillText(fmtNum(LN.len)+' km', G.x1+10, h-4);
+}
+function drawLNP(){
+  const cv = $('#ln-p'); const {ctx,w,h} = setup(cv); ctx.clearRect(0,0,w,h);
+  const r = LN.res; const pl = 44, pr = 12, pt = 10, pb = 24, ymin = -1.4, ymax = 1.6;
+  const X = s => pl + s/LN.len*(w-pl-pr), Y = v => pt + (ymax-v)/(ymax-ymin)*(h-pt-pb);
+  ctx.fillStyle = rgba('good',0.12); ctx.fillRect(pl, Y(1.05), w-pl-pr, Y(0.95)-Y(1.05));
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.fillStyle = COL.ink2; ctx.textAlign='right';
+  [-1,-0.5,0,0.5,1,1.5].forEach(v => { ctx.beginPath(); ctx.moveTo(pl, Math.round(Y(v))+.5); ctx.lineTo(w-pr, Math.round(Y(v))+.5); ctx.stroke(); ctx.fillText(v.toFixed(1), pl-6, Y(v)+3); });
+  ctx.textAlign='center'; for(let k=0;k<=4;k++){ const s = LN.len*k/4; ctx.fillText(fmtNum(s)+' km', clamp(X(s), pl+16, w-pr-20), h-6); }
+  if(!r || r.collapse){ ctx.fillStyle = COL.bad; ctx.font='600 13px "IBM Plex Sans", sans-serif'; ctx.fillText('No steady state exists at this power', w/2, h/2); return; }
+  const Vn = r.Vph, In = LN_KV[LN.kv].ith;
+  // instantaneous wave
+  ctx.strokeStyle = COL.ink2; ctx.lineWidth = 1.2; ctx.setLineDash([4,3]); ctx.beginPath();
+  r.prof.forEach((p,i) => { const v = cabs(p.V)/Vn*Math.cos(LN_W*state.t + carg(p.V)); i?ctx.lineTo(X(p.s),Y(v)):ctx.moveTo(X(p.s),Y(v)); }); ctx.stroke(); ctx.setLineDash([]);
+  const line = (fn,col,lw) => { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath(); r.prof.forEach((p,i)=>{ const v = fn(p); i?ctx.lineTo(X(p.s),Y(v)):ctx.moveTo(X(p.s),Y(v)); }); ctx.stroke(); };
+  line(p => cabs(p.V)/Vn, COL.t1, 2.5); line(p => -cabs(p.V)/Vn, rgba('t1',0.35), 1.2);
+  line(p => cabs(p.I)/In, COL.t2, 2.5);
+  const e = r.prof[r.prof.length-1]; ctx.fillStyle = COL.t1; ctx.beginPath(); ctx.arc(X(e.s), Y(cabs(e.V)/Vn), 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = COL.ink2; ctx.textAlign='left'; ctx.fillText('PER UNIT', pl+6, pt+10);
+}
+
+/* ================= Playground 4: corona ================= */
+const CO = { kv:400, n:2, d:31.8, alt:0, w:'fair', T:25, sb:45, res:null, sparks:[], ions:[], snd:null };
+const CO_M = { fair:0.85, fog:0.85*0.9, rain:0.85*0.8, snow:0.85*0.75 };
+const CO_W_TXT = { fair:'fair weather', fog:'fog', rain:'rain', snow:'wet snow' };
+function coPhaseSpacing(kv){ const t = [[66,3.5],[132,5.5],[220,7.5],[400,11],[765,15],[800,15.5]]; for(let i=0;i<t.length-1;i++){ if(kv<=t[i+1][0]) return lerp(t[i][1], t[i+1][1], (kv-t[i][0])/(t[i+1][0]-t[i][0])); } return 15.5; }
+function coCompute(){
+  const r = CO.d/20, n = CO.n, V = CO.kv/Math.sqrt(3); // cm, kV rms phase
+  const D = 1.26*coPhaseSpacing(CO.kv)*100; // GMD, cm
+  const R = n>1 ? CO.sb/(2*Math.sin(Math.PI/n)) : 0;
+  const req = n>1 ? Math.pow(n*r*Math.pow(R,n-1), 1/n) : r;
+  const lnf = Math.log(D/req), bf = n>1 ? 1 + (n-1)*r/R : 1;
+  const gavg = V/(n*r*lnf), gmax = gavg*bf; // kV/cm rms
+  const p = Math.exp(-CO.alt/8434), delta = p*293/(273+CO.T);
+  const m = CO_M[CO.w];
+  const gd = 21.1*m*delta;                                  // disruptive (loss onset), rms
+  const gv = 21.1*m*delta*(1 + 0.301/Math.sqrt(delta*r));   // visual glow onset, rms
+  const Vd = gd*n*r*lnf/bf;
+  let loss = 0; if(V > Vd) loss = 3 * (241/delta)*(50+25)*Math.sqrt(req/D)*(V-Vd)**2*1e-5; // kW/km, 3 phases
+  const level = gmax <= gd ? 0 : gmax < gv ? 1 : 2;
+  const sheath = gmax > gd ? r*(gmax/gd - 1)*10 : 0; // mm
+  CO.res = {r, n, V, D, R, req, gavg, gmax, delta, m, gd, gv, Vd, loss, level, sheath, margin: gd/gmax};
+  return CO.res;
+}
+function coUpdate(){
+  CO.kv = +$('#co-kv').value; CO.d = +$('#co-d').value; CO.alt = +$('#co-alt').value;
+  $('#co-kv-o').textContent = CO.kv+' kV'; $('#co-d-o').textContent = CO.d.toFixed(1)+' mm'; $('#co-alt-o').textContent = fmtNum(CO.alt)+' m';
+  segSet($('#co-kvp'),'k',[132,220,400,765].includes(CO.kv)?CO.kv:-1); segSet($('#co-altp'),'a',[0,1400,4000].includes(CO.alt)?CO.alt:-1);
+  const q = coCompute(), s2 = Math.SQRT2;
+  $('#co-st').innerHTML = q.level===0 ? '<span class="chip good">none, air holds</span>' : q.level===1 ? '<span class="chip warn">starting: hiss, no glow yet</span>' : '<span class="chip bad">glowing</span>';
+  $('#co-gs').textContent = sig(q.gmax*s2,3)+' kV/cm peak';
+  $('#co-gv').textContent = sig(q.gd*s2,3)+' kV/cm peak';
+  $('#co-m').innerHTML = q.margin >= 1.1 ? `<span class="chip good">${fmtNum((q.margin-1)*100,0)}% headroom</span>` : q.margin >= 1 ? `<span class="chip warn">${fmtNum((q.margin-1)*100,0)}% headroom</span>` : `<span class="chip bad">over by ${fmtNum((1/q.margin-1)*100,0)}%</span>`;
+  $('#co-dl').textContent = sig(q.delta*100,3)+'%';
+  $('#co-sh').textContent = q.sheath > 0 ? sig(q.sheath,2)+' mm' : '—';
+  $('#co-l').textContent = q.loss > 0 ? sig(q.loss,3)+' kW per km' : '≈ 0';
+  const L = (typeof LN !== 'undefined' ? LN.len : 300); $('#co-lt-l').textContent = `Over a ${fmtNum(L)} km line`;
+  const tot = q.loss*L; $('#co-lt').textContent = tot > 0 ? (tot >= 1000 ? sig(tot/1000,3)+' MW' : sig(tot,3)+' kW') + ` · ${fmtNum(Math.round(tot/2))} kettles` : '≈ 0';
+  $('#co-an').textContent = q.level===0 ? 'silent' : q.level===1 ? 'soft frying hiss' : 'loud crackle + 100 Hz hum';
+  $('#co-ri').textContent = q.level===0 ? 'negligible' : q.level===1 ? 'some AM radio noise' : 'strong AM radio noise';
+  $('#co-scale').textContent = `${CO.n} × ${CO.d.toFixed(1)} mm conductors · ${CO_W_TXT[CO.w]} · δ = ${q.delta.toFixed(3)}`;
+  $('#co-night-l').textContent = q.level===2 ? 'violet glow visible in the dark' : q.level===1 ? 'invisible, but you would hear it' : 'dark and silent';
+  coSoundUpdate();
+}
+['#co-kv','#co-d','#co-alt'].forEach(s => $(s).addEventListener('input', coUpdate));
+$('#co-kvp').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; $('#co-kv').value = b.dataset.k; coUpdate(); });
+$('#co-altp').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; $('#co-alt').value = b.dataset.a; coUpdate(); });
+$('#co-n-b').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; CO.n = +b.dataset.n; segSet($('#co-n-b'),'n',CO.n); coUpdate(); });
+$('#co-w').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; CO.w = b.dataset.w; segSet($('#co-w'),'w',CO.w); coUpdate(); });
+// ---- sound: 100 Hz hum + crackle, loudness from the corona level ----
+$('#co-snd').addEventListener('click', () => {
+  try{
+    if(CO.snd){ CO.snd.master.gain.setTargetAtTime(0, CO.snd.ctx.currentTime, 0.05); const s = CO.snd; setTimeout(()=>{ s.src.stop(); s.hum.stop(); s.ctx.close(); }, 200); CO.snd = null; $('#co-snd').textContent = 'Listen to the line'; return; }
+    const ctx = new (window.AudioContext||window.webkitAudioContext)(), sr = ctx.sampleRate, len = sr*2, buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    for(let i=0;i<len;i++){ d[i] = 0; } for(let k=0;k<2600;k++){ const p = Math.floor(Math.random()*len), a = (Math.random()*2-1)*(0.3+Math.random()*0.7); for(let j=0;j<40 && p+j<len;j++) d[p+j] += a*Math.exp(-j/6)*(Math.random()*2-1); }
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1500;
+    const cg = ctx.createGain(); cg.gain.value = 0; src.connect(hp).connect(cg);
+    const hum = ctx.createOscillator(); hum.type='sawtooth'; hum.frequency.value = 100; const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 450; const hg = ctx.createGain(); hg.gain.value = 0; hum.connect(lp).connect(hg);
+    const master = ctx.createGain(); master.gain.value = 0.6; cg.connect(master); hg.connect(master); master.connect(ctx.destination); src.start(); hum.start();
+    CO.snd = {ctx, src, hum, cg, hg, master}; $('#co-snd').textContent = 'Stop the sound'; coSoundUpdate();
+  }catch(err){ $('#co-snd').textContent = 'Sound not available here'; }
+});
+function coSoundUpdate(){ if(!CO.snd || !CO.res) return; const q = CO.res, over = clamp(1/q.margin - 1, 0, 0.6)/0.6; const t = CO.snd.ctx.currentTime;
+  CO.snd.cg.gain.setTargetAtTime(q.level===0 ? 0 : 0.08 + 0.5*over, t, 0.1); CO.snd.hg.gain.setTargetAtTime(q.level===0 ? 0.004 : q.level===1 ? 0.02 : 0.05 + 0.12*over, t, 0.1); }
+const coOff = document.createElement('canvas'); coOff.width = 192; coOff.height = 120;
+const CO_W = 2*Math.PI*0.45;
+function coBundle(q){ const pts = []; if(q.n===1) pts.push([0,0]); else for(let k=0;k<q.n;k++){ const a = Math.PI/2 + 2*Math.PI*k/q.n + (q.n===2 ? Math.PI/2 : q.n===4 ? Math.PI/4 : 0); pts.push([q.R*Math.cos(a), q.R*Math.sin(a)]); } return pts; }
+function drawCO(){
+  const q = CO.res; if(!q) return;
+  const {ctx,w,h} = setup($('#co-c'));
+  const pts = coBundle(q); let fc = pts[0]; pts.forEach(p => { if(p[0] > fc[0] + 1e-6) fc = p; });
+  const HW = q.r*4.6, sc = w/(2*HW), HH = HW*h/w, ox = fc[0], oy = fc[1];
+  const toX = x => w/2 + (x-ox)*sc, toY = y => h/2 - (y-oy)*sc;
+  const ph = Math.sin(CO_W*state.t), inst = Math.SQRT2*ph; // instantaneous scale (peak)
+  const thr = q.gd*Math.SQRT2; // breakdown, kV/cm peak
+  // field: E = sum (gavg*r) * (p - c)/|p-c|^2
+  const Eat = (x,y) => { let ex=0, ey=0; for(const c of pts){ const rx = x-c[0], ry = y-c[1], r2 = rx*rx+ry*ry; ex += rx/r2; ey += ry/r2; } const k = q.gavg*q.r*q.m0fix; return [ex*k, ey*k]; };
+  q.m0fix = q.gmax/(q.gavg*(()=>{ // normalise so the computed max surface field matches gmax
+    let mx=0; const c = pts[0]; for(let a=0;a<64;a++){ const an = 2*Math.PI*a/64, x = c[0]+q.r*1.001*Math.cos(an), y = c[1]+q.r*1.001*Math.sin(an); let ex=0, ey=0; for(const cc of pts){ const rx=x-cc[0], ry=y-cc[1], r2=rx*rx+ry*ry; ex+=rx/r2; ey+=ry/r2; } mx = Math.max(mx, Math.hypot(ex,ey)*q.r); } return mx; })());
+  const OW = coOff.width, OH = coOff.height, oc = coOff.getContext('2d'), img = oc.createImageData(OW,OH), R = COL.rgb, vio = [177,151,252];
+  for(let j=0;j<OH;j++) for(let i=0;i<OW;i++){
+    const x = ox + ((i+.5)/OW*2-1)*HW, y = oy + (1-(j+.5)/OH*2)*HH, o = (j*OW+i)*4; let c = R.panel, inside = false;
+    for(const p of pts) if((x-p[0])**2+(y-p[1])**2 < q.r*q.r) inside = true;
+    if(!inside){ const [ex,ey] = Eat(x,y); const E = Math.hypot(ex,ey)*Math.abs(inst); c = seqColor(Math.pow(clamp(E/(thr*1.1),0,1),0.7)*0.95);
+      if(E > thr){ const a = clamp(0.55 + 0.35*(E/thr-1)*3, 0, 0.95)*(0.8+0.2*Math.random()); c = [lerp(c[0],vio[0],a), lerp(c[1],vio[1],a), lerp(c[2],vio[2],a)]; } }
+    img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=255; }
+  oc.putImageData(img,0,0); ctx.imageSmoothingEnabled = true; ctx.drawImage(coOff,0,0,w,h);
+  // sparks & ions when active
+  const surfMax = q.gmax*Math.SQRT2*Math.abs(ph), active = surfMax > thr;
+  if(active && state.running){
+    const rate = clamp((surfMax/thr - 1)*40, 1, 14) * (CO.w==='rain'||CO.w==='snow' ? 1.8 : 1);
+    for(let s=0;s<rate;s++){ const c = pts[Math.floor(Math.random()*pts.length)]; let best=null;
+      for(let t=0;t<6;t++){ const an = Math.random()*2*Math.PI, x = c[0]+q.r*Math.cos(an), y = c[1]+q.r*Math.sin(an); const [ex,ey] = Eat(x*1.0005+(x-c[0])*0.002, y*1.0005+(y-c[1])*0.002); const E = Math.hypot(ex,ey); if(!best || E > best.E) best = {x,y,an,E}; }
+      if(best.E*Math.abs(inst) < thr) continue;
+      if(ph > 0) CO.sparks.push({x:best.x, y:best.y, an:best.an, life:0, max:0.12+Math.random()*0.15, len: q.r*(0.5+Math.random()*1.3)*clamp(surfMax/thr,1,2.5), seed:Math.random()*1e4, pos:true});
+      else CO.sparks.push({x:best.x, y:best.y, an:best.an, life:0, max:0.08, pos:false});
+      if(Math.random()<0.5) CO.ions.push({x:best.x, y:best.y, vx:Math.cos(best.an), vy:Math.sin(best.an), life:0}); }
+  }
+  ctx.save(); ctx.globalCompositeOperation = COL.rgb.paper[0] < 100 ? 'lighter' : 'source-over';
+  CO.sparks = CO.sparks.filter(s => (s.life += 1/60) < s.max);
+  for(const s of CO.sparks){ const a = 1 - s.life/s.max;
+    if(s.pos){ ctx.strokeStyle = `rgba(200,180,255,${0.9*a})`; ctx.lineWidth = 1.4; let x = s.x, y = s.y, an = s.an; ctx.beginPath(); ctx.moveTo(toX(x),toY(y));
+      let rnd = s.seed; const R2 = () => (rnd = (rnd*9301+49297)%233280)/233280;
+      for(let k=0;k<7;k++){ an += (R2()-0.5)*0.9; const st = s.len/7; x += Math.cos(an)*st; y += Math.sin(an)*st; ctx.lineTo(toX(x),toY(y)); if(R2()<0.3){ const bx = x + Math.cos(an+0.8)*st*1.5, by = y + Math.sin(an+0.8)*st*1.5; ctx.lineTo(toX(bx),toY(by)); ctx.moveTo(toX(x),toY(y)); } }
+      ctx.stroke(); }
+    else { ctx.fillStyle = `rgba(220,200,255,${a})`; ctx.beginPath(); ctx.arc(toX(s.x),toY(s.y),3,0,Math.PI*2); ctx.fill(); } }
+  CO.ions = CO.ions.filter(p => (p.life += 1/60) < 1.6);
+  for(const p of CO.ions){ if(state.running){ p.x += p.vx*q.r*0.02; p.y += p.vy*q.r*0.02; } ctx.fillStyle = `rgba(177,151,252,${0.7*(1-p.life/1.6)})`; ctx.beginPath(); ctx.arc(toX(p.x),toY(p.y),1.8,0,Math.PI*2); ctx.fill(); }
+  ctx.restore();
+  // conductors (stranded aluminium)
+  for(const c of pts){ const X = toX(c[0]), Y = toY(c[1]), rr = q.r*sc; ctx.fillStyle = '#A9B4BF'; ctx.strokeStyle = '#5B6570'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(X,Y,rr,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(80,90,100,.55)'; for(let k=0;k<12;k++){ const an = 2*Math.PI*k/12; ctx.beginPath(); ctx.arc(X+Math.cos(an)*rr*0.72, Y+Math.sin(an)*rr*0.72, rr*0.2, 0, Math.PI*2); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(X,Y,rr*0.3,0,Math.PI*2); ctx.fillStyle = '#7E8994'; ctx.fill();
+    if(CO.w==='rain' || CO.w==='snow' || CO.w==='fog'){ ctx.fillStyle = CO.w==='snow' ? 'rgba(255,255,255,.9)' : 'rgba(120,190,255,.85)'; for(let k=0;k<9;k++){ const an = -Math.PI/2 + (k-4)*0.28; ctx.beginPath(); ctx.arc(X+Math.cos(an)*rr*1.02, Y-Math.sin(an)*rr*1.02 + rr*0.02, Math.max(1.5, rr*0.07), 0, Math.PI*2); ctx.fill(); } } }
+  if(q.n > 1){ ctx.fillStyle = COL.ink2; ctx.font='500 11px "IBM Plex Mono", monospace'; ctx.textAlign='left';
+    ctx.fillText(`ONE WIRE OF A ${q.n}-WIRE BUNDLE · THE OTHERS ARE ${fmtNum(q.R*2*Math.sin(Math.PI/q.n),0)} CM AWAY ←`, 8, 44); }
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='right'; ctx.fillText(`VIEW ${fmtNum(2*HW*10,0)} MM WIDE`, w-8, h-8);
+  // Poynting: main flow into the screen; side flow into the glow
+  const Xc = w - 44, Yc = 40; ctx.strokeStyle = COL.accent; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(Xc,Yc,14,0,Math.PI*2); ctx.moveTo(Xc-9,Yc-9); ctx.lineTo(Xc+9,Yc+9); ctx.moveTo(Xc+9,Yc-9); ctx.lineTo(Xc-9,Yc+9); ctx.stroke();
+  ctx.fillStyle = COL.ink; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='right'; ctx.fillText('MAIN ENERGY FLOW:', Xc-20, Yc-2); ctx.fillText('INTO SCREEN, TO THE CITY', Xc-20, Yc+10);
+  if(active){ ctx.strokeStyle = rgba('accent',0.9); ctx.fillStyle = rgba('accent',0.9); ctx.lineWidth = 1.8;
+    for(const c of pts){ for(let k=0;k<6;k++){ const an = 2*Math.PI*k/6 + 0.3; const r0 = q.r*(1.25 + 0.9*clamp(surfMax/thr-1,0,1)) + q.r*0.8, r1 = q.r*1.12;
+      const x0 = c[0]+Math.cos(an)*r0, y0 = c[1]+Math.sin(an)*r0, x1 = c[0]+Math.cos(an)*r1, y1 = c[1]+Math.sin(an)*r1;
+      ctx.beginPath(); ctx.moveTo(toX(x0),toY(y0)); ctx.lineTo(toX(x1),toY(y1)); ctx.stroke(); const ang = Math.atan2(-(y1-y0), x1-x0), X1 = toX(x1), Y1 = toY(y1);
+      ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X1-6*Math.cos(ang-0.5), Y1-6*Math.sin(ang-0.5)); ctx.lineTo(X1-6*Math.cos(ang+0.5), Y1-6*Math.sin(ang+0.5)); ctx.closePath(); ctx.fill(); } } }
+  // cycle indicator
+  ctx.fillStyle = COL.ink2; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left';
+  ctx.fillText(`VOLTAGE NOW ${ph>=0?'+':'−'}${Math.round(Math.abs(ph)*100)}% OF PEAK · 50 Hz SLOWED 110×`, 8, h-8);
+  ctx.strokeStyle = COL.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(8, 18); ctx.lineTo(108, 18); ctx.stroke();
+  ctx.strokeStyle = COL.t1; ctx.lineWidth = 1.5; ctx.beginPath(); for(let x=0;x<=100;x++){ const y = 18 - 10*Math.sin(2*Math.PI*x/100*1 + 0); x?ctx.lineTo(8+x,y):ctx.moveTo(8,y); } ctx.stroke();
+  const cxp = ((CO_W*state.t/(2*Math.PI))%1)*100; ctx.fillStyle = COL.accent; ctx.beginPath(); ctx.arc(8+cxp, 18-10*Math.sin(2*Math.PI*cxp/100), 3.5, 0, Math.PI*2); ctx.fill();
+  const thrFrac = thr/(q.gmax*Math.SQRT2); if(thrFrac < 1){ ctx.strokeStyle = rgba('bad',0.7); ctx.setLineDash([3,3]); [1,-1].forEach(sg => { ctx.beginPath(); ctx.moveTo(8, 18-sg*10*thrFrac); ctx.lineTo(108, 18-sg*10*thrFrac); ctx.stroke(); }); ctx.setLineDash([]); }
+  ctx.fillText('glow above the red line', 114, 21);
+}
+const coStars = Array.from({length:70}, () => [Math.random(), Math.random()*0.55, Math.random()]);
+const coDrops = Array.from({length:160}, () => [Math.random(), Math.random(), 0.6+Math.random()*0.8]);
+function drawCON(){
+  const q = CO.res; if(!q) return; const {ctx,w,h} = setup($('#co-n'));
+  // deliberately always a night scene
+  const g = ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,'#070B18'); g.addColorStop(1,'#141A2E'); ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+  if(CO.w==='fair'){ coStars.forEach(([x,y,b]) => { ctx.fillStyle = `rgba(255,255,255,${0.3+0.5*b*(0.7+0.3*Math.sin(state.t*2+b*9))})`; ctx.fillRect(x*w, y*h, 1.5, 1.5); }); ctx.fillStyle = '#E9E4C8'; ctx.beginPath(); ctx.arc(w*0.85, h*0.2, 12, 0, Math.PI*2); ctx.fill(); }
+  // hills
+  ctx.fillStyle = '#0A0E1A'; ctx.beginPath(); ctx.moveTo(0,h); for(let x=0;x<=w;x+=10) ctx.lineTo(x, h*0.84 - 10*Math.sin(x/120) - 6*Math.sin(x/41)); ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+  const towers = [0.08, 0.5, 0.92].map(f => f*w), top = h*0.28, arm = h*0.36;
+  ctx.strokeStyle = '#2A3350'; ctx.lineWidth = 2;
+  towers.forEach(x => { ctx.beginPath(); ctx.moveTo(x-14,h*0.86); ctx.lineTo(x-4,top); ctx.lineTo(x+4,top); ctx.lineTo(x+14,h*0.86); ctx.moveTo(x-40,arm); ctx.lineTo(x+40,arm); ctx.stroke(); });
+  const wireY = (u, k) => arm + 16 + 34*4*((u%0.5)/0.5)*(1-(u%0.5)/0.5), wx = (u) => lerp(towers[0], towers[2], u);
+  const over = q.level===0 ? 0 : clamp(1/q.margin - 1 + 0.04, 0, 0.8)/0.8, pulse = Math.abs(Math.sin(CO_W*state.t));
+  const offs = [-34, 0, 34];
+  offs.forEach((dx, k) => {
+    const path = () => { ctx.beginPath(); for(let i=0;i<=100;i++){ const u = i/100; const X = wx(u)+dx*0.0, Y = wireY(u,k) + (k-1)*6; i?ctx.lineTo(X+dx,Y):ctx.moveTo(X+dx,Y); } };
+    if(q.level===2){ ctx.save(); ctx.shadowColor = 'rgba(170,140,255,1)'; ctx.shadowBlur = 8 + 18*over*pulse; ctx.strokeStyle = `rgba(185,160,255,${0.25+0.55*over*(0.6+0.4*pulse)})`; ctx.lineWidth = 3 + 4*over; path(); ctx.stroke(); ctx.restore(); }
+    ctx.strokeStyle = '#3A4466'; ctx.lineWidth = 1.4; path(); ctx.stroke();
+    if(q.level>=1){ const n = Math.round((q.level===2 ? 12 : 3)*(0.4+over)*(CO.w==='rain'?2:1)*pulse); for(let s=0;s<n;s++){ const u = Math.random(); const X = wx(u)+dx, Y = wireY(u,k)+(k-1)*6; ctx.fillStyle = `rgba(215,200,255,${q.level===2?0.9:0.35})`; ctx.fillRect(X-1, Y-1, 2.5, 2.5); } }
+  });
+  if(CO.w==='rain' || CO.w==='snow'){ ctx.strokeStyle = CO.w==='rain' ? 'rgba(150,180,230,.35)' : 'rgba(255,255,255,.6)'; ctx.lineWidth = 1;
+    coDrops.forEach(dp => { const sp = CO.w==='rain' ? 0.9 : 0.12; dp[1] = (dp[1] + (state.running ? sp*dp[2]/60 : 0)) % 1; const X = dp[0]*w, Y = dp[1]*h;
+      if(CO.w==='rain'){ ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(X-2,Y+9); ctx.stroke(); } else { ctx.fillStyle='rgba(255,255,255,.7)'; ctx.fillRect(X,Y,2,2); } }); }
+  if(CO.w==='fog'){ ctx.fillStyle = 'rgba(160,170,200,.12)'; ctx.fillRect(0,0,w,h); }
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font='500 10px "IBM Plex Mono", monospace'; ctx.textAlign='left'; ctx.fillText(`${CO.kv} kV · ${CO_W_TXT[CO.w].toUpperCase()} · ${fmtNum(CO.alt)} m`, 8, 14);
+}
+
+/* ================= tabs, theme, loop ================= */
+function fmtTimeFine(s){ if(s<1e-9) return sig(s*1e12,3)+' ps'; if(s<1e-6) return sig(s*1e9,3)+' ns'; return fmtTime(s); }
+const TABS = ['pw','cx','ln','co'];
+function showTab(id){
+  if(!TABS.includes(id)) id = 'pw';
+  state.tab = id;
+  TABS.forEach(t => { $('#'+t).hidden = t!==id; $('#tab-'+t).setAttribute('aria-selected', String(t===id)); });
+  if(id==='pw') pwSwitch(true);
+  if(id==='co') coUpdate();
+  dirtyAll();
+  try{ history.replaceState(null,'','#'+id); }catch(e){}
+}
+window.addEventListener('hashchange', () => { const id = (location.hash||'').slice(1); if(id !== state.tab && TABS.includes(id)) showTab(id); });
+$$('nav.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.id.replace('tab-',''))));
+$('nav.tabs').addEventListener('keydown', e => { const i = TABS.indexOf(state.tab);
+  if(e.key==='ArrowRight'){ showTab(TABS[(i+1)%TABS.length]); $('#tab-'+state.tab).focus(); }
+  if(e.key==='ArrowLeft'){ showTab(TABS[(i+TABS.length-1)%TABS.length]); $('#tab-'+state.tab).focus(); } });
+$('#theme').addEventListener('click', () => {
+  const root = document.documentElement, cur = root.getAttribute('data-theme');
+  const isDark = cur ? cur==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark'); readColors();
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => readColors());
+const motionBtn = $('#motion');
+function setMotion(on){ state.running = on; motionBtn.setAttribute('aria-pressed', String(!on)); motionBtn.textContent = on ? 'Pause motion' : 'Resume motion'; }
+motionBtn.addEventListener('click', () => setMotion(!state.running));
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) setMotion(false);
+new ResizeObserver(() => dirtyAll()).observe(document.body);
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  if(state.running) state.t += dt;
+  const tab = state.tab;
+  if(tab==='pw') drawPW();
+  else if(tab==='cx'){ drawCX(); drawTP(); }
+  else if(tab==='ln'){ drawLN(); drawLNP(); }
+  else if(tab==='co'){ drawCO(); drawCON(); }
+  requestAnimationFrame(frame);
+}
+function init(){
+  readColors(); ohlSetup();
+  pwSlow(); pwSetScene('dc');
+  cxRead(); cxSetType('cord');
+  lnUpdate(); coUpdate();
+  showTab((location.hash||'').slice(1));
+  requestAnimationFrame(frame);
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => dirtyAll());
+init();
+</script>
+</body>
+</html>
